@@ -77,12 +77,16 @@
         <div class="campo"><label for="tipo">Tipo de valor</label>
           <select id="tipo"><option value="auto">Automático</option><option value="cat">Categorias / níveis</option><option value="num">Números (faixas)</option></select></div>
         <div class="campo so-num"><label for="metodo">Faixas por</label>
-          <select id="metodo"><option value="manual">Definir eu mesmo</option><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
+          <select id="metodo"><option value="manual">Montar eu mesmo (até X, até Y…)</option><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
       </div>
-      <div class="campo so-num" id="campo-cortes" hidden>
-        <label for="cortes">Limites das faixas, separados por ponto e vírgula</label>
-        <input id="cortes" type="text" placeholder="Ex.: 400; 600; 800; 1.000">
-        <p class="dica mini">“400; 600; 800” gera: até 400 · 401 a 600 · 601 a 800 · acima de 800.</p>
+      <div class="campo" id="campo-cortes" hidden>
+        <label>Monte as faixas: cada linha vai até o valor que você digitar</label>
+        <div id="tabela-faixas" class="tabela-faixas"></div>
+        <div class="linha">
+          <button id="btn-faixa-add" class="sec">+ adicionar faixa</button>
+          <button id="btn-faixa-auto" class="sec" title="Sugere faixas a partir dos seus dados">Sugerir faixas</button>
+        </div>
+        <p class="dica mini">Ex.: até 1.900 · até 3.000 · acima de 3.000. Um território com 2.500 cai na 2ª faixa.</p>
       </div>
       <div class="grade2">
         <div class="campo so-num" id="campo-classes"><label for="classes">Nº de faixas</label>
@@ -95,10 +99,12 @@
       </div>
       <label class="check"><input type="checkbox" id="inverter"> Inverter a ordem das cores</label>
 
-      <div class="campo"><label>Legenda: clique na cor para trocar e escreva o texto que quiser</label>
-        <div id="editor-legenda" class="editor-legenda"><p class="dica mini">Cole dados para ver as faixas.</p></div>
+      <div id="bloco-editor-legenda">
+        <div class="campo"><label>Legenda: clique na cor para trocar e escreva o texto que quiser</label>
+          <div id="editor-legenda" class="editor-legenda"><p class="dica mini">Cole dados para ver as faixas.</p></div>
+        </div>
+        <div class="linha"><button id="btn-leg-reset" class="sec">Restaurar cores e textos da legenda</button></div>
       </div>
-      <div class="linha"><button id="btn-leg-reset" class="sec">Restaurar cores e textos da legenda</button></div>
       <div class="campo"><label for="leg-titulo">Título da legenda</label><input id="leg-titulo" type="text" placeholder="Automático (nome da coluna)"></div>
       <div class="grade2">
         <div class="campo"><label for="unidade">Unidade</label><input id="unidade" type="text" placeholder="Ex.: %, famílias"></div>
@@ -208,7 +214,7 @@ CRAS São Bento           500                     310</pre>
     <ul>
       <li><b>Dados por bairro, mapa por CRAS:</b> cole por bairro e mude “Mostrar o mapa por” para CRAS. A ferramenta soma (ou faz a média) dos bairros de cada território.</li>
       <li><b>Dados por CRAS, mapa por bairro:</b> cada bairro recebe o valor do seu território.</li>
-      <li><b>Escolher as faixas:</b> em “Faixas por”, escolha <b>Definir eu mesmo</b> e digite os limites, por exemplo <code>400; 600; 800; 1.000</code>. Na legenda, clique em cada cor para trocá-la e reescreva o texto de cada faixa (ex.: “1” → “Alta vulnerabilidade”).</li>
+      <li><b>Escolher as faixas:</b> em “Faixas por”, escolha <b>Montar eu mesmo</b>: cada linha da tabelinha é uma faixa (“até 1.900”, “até 3.000”…), com o nome e a cor que você quiser. Use <b>+ adicionar faixa</b> para criar mais. Na legenda, clique em cada cor para trocá-la e reescreva o texto de cada faixa (ex.: “1” → “Alta vulnerabilidade”).</li>
       <li><b>Categorias × números:</b> valores como 1, 2, 3 (até 10) ou textos (“alta”, “média”) viram categorias. Valores como 500 e 5.000 viram faixas. Dá para trocar em “Tipo de valor”.</li>
       <li>Números podem vir no formato brasileiro: <code>5.000</code>, <code>12,5</code>, <code>35%</code>.</li>
       <li>Não sabe o nome exato? Clique em <b>Baixar lista de nomes</b>, preencha no Excel e cole de volta.</li>

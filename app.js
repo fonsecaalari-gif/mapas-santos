@@ -165,10 +165,13 @@ const PADRAO = {
   rotulos: 'dados', vista: 'composto', mostrarValores: false, divisas: true, equip: ['CRAS'],
   cortesManuais: '', corIni: '#fff3c4', corFim: '#99000d', legEdit: {}, legTitulo: '', legContagem: true,
   legSemDado: true, semDadoTexto: '', corSemDado: 'hachura', unidade: '', casas: 'auto', subtitulo: '',
-  tamRotulo: 100, escalaNorte: true,
+  tamRotulo: 100, escalaNorte: true, faixas: [], faixaAcima: { rotulo: '', cor: '' },
 };
 let E = Object.assign({}, PADRAO, lsGet(CHAVE_ESTADO) || {});
 if (!E.legEdit || typeof E.legEdit !== 'object') E.legEdit = {};
+if (!Array.isArray(E.faixas)) E.faixas = [];
+if (!E.faixaAcima) E.faixaAcima = { rotulo: '', cor: '' };
+if (!E.faixas.length && E.cortesManuais) E.faixas = lerCortes(E.cortesManuais).map(ate => ({ ate, rotulo: '', cor: '' }));   // versão anterior
 let DADOS = { colunas: [], linhas: new Map() };   // linhas: área (nível dos dados) -> [valores brutos]
 const salvarEstado = () => lsSet(CHAVE_ESTADO, E);
 
@@ -191,8 +194,12 @@ function interpretar(texto, nivelForcado) {
   for (const n of NIVEIS) {
     if (nivelForcado && n.id !== nivelForcado) continue;
     const ind = indiceNomes(n.id);
-    const ok = tab.filter(r => reconhecer(r[0], ind)).length;
-    if (!melhor || ok > melhor.ok) melhor = { nivel: n.id, ind, ok };
+    // "CRAS Rádio Clube" é território de CRAS, não o bairro Rádio Clube: o prefixo decide o nível
+    const prefixoOk = r => { const k = chave(r[0]); const pre = (k.match(/^(cras|creas|ubs|usf)\b/) || [])[1];
+      return !pre || n.id === ({ cras: 'cras', creas: 'creas', ubs: 'saude', usf: 'saude' })[pre]; };
+    const ok = tab.filter(r => prefixoOk(r) && reconhecer(r[0], ind)).length;
+    const exatos = tab.filter(r => ind.nomes.some(nm => chave(nm) === chave(r[0]))).length;
+    if (!melhor || ok > melhor.ok || (ok === melhor.ok && exatos > melhor.exatos)) melhor = { nivel: n.id, ind, ok, exatos };
   }
   let cab = null, corpo = tab;
   if (!reconhecer(tab[0][0], melhor.ind) && tab.length > 1) { cab = tab[0]; corpo = tab.slice(1); }
@@ -258,6 +265,7 @@ function classificar(valores) {
   const distintos = [...new Set(lista.map(x => todosNum ? parseNum(x) : x))];
   let tipo = E.tipo;
   if (tipo === 'auto') tipo = !todosNum || (nums.every(Number.isInteger) && distintos.length <= 7 && d3.max(nums) <= 10 && d3.min(nums) >= 0) ? 'cat' : 'num';
+  if (E.tipo === 'auto' && E.metodo === 'manual' && todosNum && faixasOrdenadas().length) tipo = 'num';
   if (tipo === 'num' && !todosNum) tipo = 'cat';
   const pal = E.paleta;
 
@@ -287,8 +295,9 @@ function classificar(valores) {
   const casas = E.casas === 'auto' ? casasDecimais(vals) : +E.casas;
   const fn = v => fmtNum(v, casas);
   const fv = v => comUnidade(fn(v));
-  let cortes = E.metodo === 'manual' ? lerCortes(E.cortesManuais) : [];
-  const manual = E.metodo === 'manual' && cortes.length > 0;
+  const fxs = E.metodo === 'manual' ? faixasOrdenadas() : [];
+  let cortes = fxs.map(f => f.ate);
+  const manual = cortes.length > 0;
   if (!manual) {
     const k = Math.min(+E.classes, new Set(vals).size);
     const unicos = [...new Set(vals)];
@@ -308,16 +317,21 @@ function classificar(valores) {
     itens = d3.range(nfx).map(i => {
       const lo = cortes[i - 1], hi = cortes[i];
       const r = comUnidade(i === 0 ? `Até ${fn(hi)}` : i === nfx - 1 ? `Acima de ${fn(lo)}` : inteiros ? `${fn(lo + 1)} a ${fn(hi)}` : `Acima de ${fn(lo)} até ${fn(hi)}`);
-      return { chave: `num:${lo ?? ''}|${hi ?? ''}`, corPadrao: cores[i], rotuloPadrao: r, n: membros[i].length, i };
+      const f = i < fxs.length ? fxs[i] : E.faixaAcima;
+      return { chave: `faixa:${i}`, corPadrao: cores[i], rotuloPadrao: r, n: membros[i].length, i,
+        cor: f.cor || cores[i], rotulo: f.rotulo || r, editado: !!(f.cor || f.rotulo) };
     });
   } else {
     itens = membros.map((m, i) => m.length ? ({ chave: `num:${m[0]}|${m[m.length - 1]}`, corPadrao: cores[i],
       rotuloPadrao: m[0] === m[m.length - 1] ? fv(m[0]) : comUnidade(`${fn(m[0])} – ${fn(m[m.length - 1])}`), n: m.length, i }) : null).filter(Boolean);
   }
-  aplicarEdicaoLegenda(itens);
+  if (!manual) aplicarEdicaoLegenda(itens);
   const corFinal = cores.slice();
   itens.forEach(it => { corFinal[it.i] = it.cor; });
   return { tipo, todosNum: true, manual, cortes, corDe: x => corFinal[faixa(parseNum(x))], legenda: itens, fmt: x => fv(parseNum(x)) };
+}
+function faixasOrdenadas() {
+  return E.faixas.filter(f => f && Number.isFinite(f.ate)).sort((a, b) => a.ate - b.ate);
 }
 function aplicarEdicaoLegenda(itens) {
   for (const it of itens) {
@@ -518,6 +532,7 @@ function desenhar() {
   VISTA_ANTERIOR = E.vista;
   atualizarEditor();
   montarEditorLegenda(cls);
+  montarTabelaFaixas(cls);
   $('#contagem').textContent = `(${DADOS.linhas.size} de ${areasDo(E.nivelDados).length} preenchidos)`;
 }
 
@@ -687,8 +702,8 @@ function atualizarControles() {
   const ehNum = ULTIMO && ULTIMO.cls && ULTIMO.cls.tipo === 'num';
   document.querySelectorAll('.so-num').forEach(el => { el.style.opacity = ehNum || E.tipo === 'num' ? 1 : 0.45; });
   $('#campo-cortes').hidden = E.metodo !== 'manual';
+  $('#bloco-editor-legenda').hidden = E.metodo === 'manual';
   $('#campo-classes').hidden = E.metodo === 'manual';
-  if (document.activeElement !== $('#cortes')) $('#cortes').value = E.cortesManuais;
   $('#cores-custom').hidden = E.paleta !== 'custom';
   $('#cor-ini').value = E.corIni; $('#cor-fim').value = E.corFim;
   $('#leg-titulo').value = E.legTitulo; $('#unidade').value = E.unidade; $('#casas').value = String(E.casas);
@@ -763,8 +778,7 @@ function aplicarPronto(id) {
 }
 
 function limparPersonalizacao() {
-  Object.assign(E, { titulo: '', subtitulo: '', legTitulo: '', unidade: '', legEdit: {}, cortesManuais: '' });
-  if (E.metodo === 'manual') E.metodo = 'jenks';
+  Object.assign(E, { titulo: '', subtitulo: '', legTitulo: '', unidade: '', legEdit: {} });
 }
 function aplicarTexto(manterNivel) {
   const txt = $('#entrada').value;
@@ -936,20 +950,85 @@ liga('#nivel-dados', 'nivelDados'); liga('#nivel-mapa', 'nivelMapa'); liga('#agr
 liga('#titulo', 'titulo', v => v, 'input'); liga('#fonte', 'fonte', v => v, 'input');
 $('#fonte').addEventListener('input', () => { E.fonteAuto = false; salvarEstado(); });
 liga('#tipo', 'tipo'); liga('#paleta', 'paleta'); liga('#classes', 'classes', Number);
-liga('#cortes', 'cortesManuais', v => v, 'input');
 liga('#cor-ini', 'corIni', v => v, 'input'); liga('#cor-fim', 'corFim', v => v, 'input');
 liga('#leg-titulo', 'legTitulo', v => v, 'input'); liga('#unidade', 'unidade', v => v, 'input'); liga('#casas', 'casas', v => v === 'auto' ? 'auto' : Number(v));
 liga('#cor-sem-dado', 'corSemDado'); liga('#sem-dado-texto', 'semDadoTexto', v => v, 'input');
 liga('#leg-contagem', 'legContagem'); liga('#leg-sem-dado', 'legSemDado');
 liga('#subtitulo', 'subtitulo', v => v, 'input'); liga('#tam-rotulo', 'tamRotulo', Number, 'input'); liga('#escala-norte', 'escalaNorte');
-// "Definir eu mesmo": começa com os limites que o mapa já está usando
+// "Montar eu mesmo": começa com faixas sugeridas a partir dos dados, se ainda não houver nenhuma
 $('#metodo').addEventListener('change', ev => {
   E.metodo = ev.target.value;
-  if (E.metodo === 'manual' && !lerCortes(E.cortesManuais).length && ULTIMO && ULTIMO.cls && ULTIMO.cls.cortes) {
-    const nice = ULTIMO.cls.cortes.map(c => { const m = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(c) || 1)) - 1)); return Math.round(c / m) * m; });
-    E.cortesManuais = [...new Set(nice)].map(c => fmtNum(c)).join('; ');
-  }
+  if (E.metodo === 'manual' && !faixasOrdenadas().length) sugerirFaixas();
   salvarEstado(); atualizarControles(); desenhar();
+});
+function arredondar(c) {
+  const m = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(c) || 1)) - 1));
+  return Math.round(c / m) * m;
+}
+function sugerirFaixas() {
+  const { valores } = calcular();
+  const vals = [...valores.values()].map(o => parseNum(o.v)).filter(v => v != null).sort((a, b) => a - b);
+  if (vals.length < 2) { E.faixas = [{ ate: 1000, rotulo: '', cor: '' }, { ate: 2000, rotulo: '', cor: '' }]; return; }
+  const k = Math.min(4, new Set(vals).size);
+  const cs = [...new Set(quebras(vals, k, 'jenks').map(arredondar))].filter(c => c >= vals[0] && c < vals[vals.length - 1]);
+  E.faixas = (cs.length ? cs : [arredondar(d3.median(vals))]).map(ate => ({ ate, rotulo: '', cor: '' }));
+}
+// tabela de faixas
+function montarTabelaFaixas(cls) {
+  const box = $('#tabela-faixas');
+  if (!box || $('#campo-cortes').hidden) return;
+  const foco = document.activeElement;
+  if (box.contains(foco) && foco.type === 'text') return;   // não atrapalha quem está digitando
+  const fxs = faixasOrdenadas();
+  E.faixas = fxs;
+  const leg = cls && cls.manual ? cls.legenda : [];
+  const cores = coresDe(E.paleta, fxs.length + 1, false);
+  const casas = E.casas === 'auto' ? 2 : +E.casas;
+  const linha = (f, i, ultima) => {
+    const it = leg[i] || {};
+    const cor = f.cor || cores[i] || '#cccccc';
+    return `<div class="fx">
+      <input type="text" data-i="${i}" data-campo="rotulo" value="${esc(f.rotulo || '')}" placeholder="${esc(it.rotuloPadrao || ('Faixa ' + (i + 1)))}" title="Nome desta faixa na legenda (opcional)">
+      ${ultima ? `<span class="acima">acima de ${fxs.length ? fmtNum(fxs[fxs.length - 1].ate, casas) : '—'}</span>`
+               : `<span class="ate">até <input type="text" inputmode="decimal" data-i="${i}" data-campo="ate" value="${esc(fmtNum(f.ate, casas))}" title="Valor máximo desta faixa"></span>`}
+      <input type="color" data-i="${ultima ? 'acima' : i}" data-campo="cor" value="${esc(d3.color(cor).formatHex())}" title="Cor desta faixa">
+      <span class="n-area" title="Áreas nesta faixa">${it.n ?? ''}</span>
+      ${ultima ? '<span></span>' : `<button class="del" data-del="${i}" title="Remover esta faixa">×</button>`}
+    </div>`;
+  };
+  box.innerHTML = '<div class="cab"><span>Nome na legenda</span><span>Limite</span><span>Cor</span><span>n</span><span></span></div>' +
+    fxs.map((f, i) => linha(f, i, false)).join('') + linha(E.faixaAcima, fxs.length, true);
+}
+function alvoFaixa(i) { return i === 'acima' || +i === E.faixas.length ? E.faixaAcima : E.faixas[+i]; }
+$('#tabela-faixas').addEventListener('input', ev => {
+  const t = ev.target; if (t.dataset.campo !== 'cor') return;
+  alvoFaixa(t.dataset.i).cor = t.value; salvarEstado(); desenhar();
+});
+$('#tabela-faixas').addEventListener('change', ev => {
+  const t = ev.target, c = t.dataset.campo; if (!c || c === 'cor') return;
+  if (c === 'rotulo') alvoFaixa(t.dataset.i).rotulo = t.value.trim();
+  if (c === 'ate') {
+    const v = parseNum(t.value);
+    if (v == null) { t.value = fmtNum(E.faixas[+t.dataset.i].ate); return; }
+    E.faixas[+t.dataset.i].ate = v;
+    E.faixas = faixasOrdenadas();
+  }
+  salvarEstado(); t.blur(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
+});
+$('#tabela-faixas').addEventListener('click', ev => {
+  const d = ev.target.dataset.del; if (d == null) return;
+  E.faixas.splice(+d, 1); salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
+});
+$('#btn-faixa-add').addEventListener('click', () => {
+  const fxs = faixasOrdenadas();
+  const ult = fxs.length ? fxs[fxs.length - 1].ate : 0;
+  const passo = fxs.length > 1 ? ult - fxs[fxs.length - 2].ate : (ult || 1000);
+  E.faixas = fxs.concat([{ ate: arredondar(ult + passo), rotulo: '', cor: '' }]);
+  salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
+  const ins = $('#tabela-faixas').querySelectorAll('input[data-campo="ate"]'); if (ins.length) { ins[ins.length - 1].focus(); ins[ins.length - 1].select(); }
+});
+$('#btn-faixa-auto').addEventListener('click', () => {
+  sugerirFaixas(); E.faixaAcima = { rotulo: '', cor: '' }; salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
 });
 liga('#inverter', 'inverter'); liga('#rotulos', 'rotulos'); liga('#vista', 'vista'); liga('#mostrar-valores', 'mostrarValores'); liga('#divisas-bairro', 'divisas');
 $('#btn-modelo').addEventListener('click', baixarModelo);
