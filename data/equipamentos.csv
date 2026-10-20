@@ -1,0 +1,255 @@
+tipo;nome;bairro;endereco;lon;lat;sigla_prefeitura
+CAPS;CAPS I - Zona Noroeste;Bom Retiro;Rua Comandante Bulção Vianna, 853;-46.375527;-23.940879;CAPS-ZONA NOROESTE
+CAPS;CAPS II - Centro;Macuco;Avenida Conselheiro Rodrigues Alves, 236;-46.31654;-23.955943;CAPS-CENTRO
+CAPS;CAPS III - Praia;Aparecida;Avenida Coronel Joaquim Montenegro, 329;-46.303447;-23.97898;CAPS-PRAIA
+CAPS;CAPS IV - Vila Belmiro;Marapé;Avenida Senador Pinheiro Machado, 718;-46.345171;-23.958162;CAPS-DA VILA
+CAPS;CAPS Infantil - Região Central e Morros;Campo Grande;Avenida Senador Pinheiro Machado, 769;-46.344561;-23.960223;CAPSI-RCM
+CAPS;CAPS Infantil - Zona Noroeste;Bom Retiro;Praça Maria Coelho Lopes, 395;-46.370379;-23.940597;CAPSI-ZNO
+CAPS;CAPS V - Orquidário;José Menino;Avenida General Francisco Glycerio, 661;-46.347904;-23.965269;CAPS-ORQUIDARIO
+CAPS;CAPS Álcool e Drogas Infanto Juvenil;Vila Mathias;Avenida Conselheiro Nébias, 349;-46.321852;-23.948919;CAPS AD IJ
+CAPS;CAPS Álcool e Drogas da ZN e Morros II;Macuco;Rua Silva Jardim, 354;-46.320171;-23.954091;CAPS AD ZNO
+CAPS;CAPS Álcool e Drogas da Zoi, RCH e Morros I;Vila Belmiro;Rua Monsenhor Paula Rodrigues, 130;-46.332869;-23.950544;CAPS AD ZOI
+CRAS;CRAS Bom Retiro;Caneleira;Avenida Nossa Senhora de Fátima, 517;-46.364677;-23.941135;SECRAS-BR
+CRAS;CRAS Centro Histórico e Área Continental;Centro;Avenida João Pessoa, 300;-46.322969;-23.93608;SECRAS-RCH/AC
+CRAS;CRAS Chico de Paula;Chico de Paula;Avenida Marginal da Via Anchieta (sp-150), 218;-46.365809;-23.930281;SECRAS-CP
+CRAS;CRAS Nova Cintra;Morro Nova Cintra;Avenida Santista, 655;-46.352004;-23.94449;SECRAS-NC
+CRAS;CRAS Orla e Intermediária;Macuco;Avenida Affonso Penna, 185;-46.3156;-23.961626;SECRAS-ZOI
+CRAS;CRAS Rádio Clube;Vila Gilda;Avenida Brigadeiro Faria Lima;-46.389282;-23.942148;SECRAS-RC
+CRAS;CRAS São Bento;Morro São Bento;Rua Santa Ângela, 156;-46.336917;-23.936663;SECRAS-SB
+CRAS;CRAS São Manoel;São Manoel;Rua Coronel Feliciano Narciso Bicudo, 655;-46.383778;-23.927824;SECRAS-SM
+CREAS;CREAS Zona Leste;Encruzilhada;Avenida Conselheiro Nébias, 452;-46.322745;-23.953495;SECREAS-ZONA LESTE
+CREAS;CREAS Zona Noroeste e Morros;Saboó;Rua Cananeia, 269;-46.353708;-23.932141;SECREAS-ZNO/MORROS
+Centro POP;Centro POP;Paquetá;Rua Amador Bueno, 446;-46.319082;-23.937836;CENTRO-POP
+Convivência / NIAS;Centro de Convivência da Caneleira;Caneleira;Rua Gilberto Franco Silva, 317;-46.366037;-23.944533;CECONV-CN
+Convivência / NIAS;Centro de Convivência da Área Continental;Caruara;Rua Tamoio, 265;-46.189899;-23.888728;CECONV-AC
+Convivência / NIAS;Centro de Convivência do Morro Santa Maria;Morro Santa Maria;Rua Hilario Garcia Carvalho;-46.359229;-23.937268;CECONV-MSM
+Convivência / NIAS;Centro de Convivência do Morro São Bento;Morro São Bento;Rua Assunção de Nossa Senhora, 156;-46.336856;-23.936713;CECONV-MSB
+Convivência / NIAS;Centro de Convivência do Rádio Clube;Vila Gilda;Avenida Brigadeiro Faria Lima;-46.387551;-23.93837;CECONV-RC
+Convivência / NIAS;Centro de Convivência do São Manoel;São Manoel;Rua Professor Francisco Meira, 104;-46.381166;-23.929509;CECONV-SM
+Convivência / NIAS;Nucleo Integrado de Assistência Social - CEU das Artes;Castelo;Praça Paz Universal;-46.379745;-23.947874;NIAS-CA
+Convivência / NIAS;Nucleo Integrado de Atendimento Social - Área Continental;Caruara;Rua Andrade Soares, 31;-46.191553;-23.883475;NIAS-AC
+Educação conveniada;APAE - Centro Educacional DR. Luiz Lopes;Encruzilhada;Rua Barão de Paranapiacaba, 91;-46.325617;-23.956994;APAE-LLOPES
+Educação conveniada;Aces -associação de Criancas Especiais de Santos - Walter Bergamo;Vila Belmiro;Rua Doutor Cesario Bastos, 30;-46.333062;-23.951886;ACES-WBERGAMO
+Educação conveniada;Amigos Creche Comunitaria II;São Jorge;Avenida Nossa Senhora de Fátima, 837;-46.369726;-23.946948;AMIGOS-II
+Educação conveniada;Apaea - Hendricus Petrus;Vila Mathias;Rua Almeida Moraes, 17;-46.323375;-23.949434;APAEA
+Educação conveniada;Arcanjo Rafael - Marapé II - Sociedade de Amor a Crianca;Marapé;Rua Alfredo Albertini, 325;-46.347612;-23.963001;AR-MII-SAC
+Educação conveniada;Assistência a Infância de Santos - Gota de Leite;Encruzilhada;Avenida Conselheiro Nébias, 388;-46.322415;-23.950426;AIS-GL
+Educação conveniada;Assistência ao Menor Enfermo Mental Amem;Vila Mathias;Rua Prudente de Moraes, 59;-46.331141;-23.946236;AMEM-26JULHO
+Educação conveniada;Assoc. Benef. São José - Creche Padre Lucio Floro;Morro José Menino;Rua Doutor Carlos Alberto Curado, 105;-46.355388;-23.965361;ABSJ-CPLF
+Educação conveniada;Assoc. Benef. e Prom. Mov. Alpha de Ação Comum. - Maac - Creche Alpha;Marapé;Rua Dom Duarte Leopoldo e Silva, 30;-46.345176;-23.954728;MAAC-CA
+Educação conveniada;Assoc. Bras. de Educ. e Cultura - Abec - Creche Lar Feliz;Vila Nova;Rua Henrique Porchat, 22;-46.324237;-23.94101;ABEC-CLF
+Educação conveniada;Assoc. Fabrica da Solidariedade (gente Miuda);Morro São Bento;Rua Assunção de Nossa Senhora, 501;-46.336957;-23.937181;AFSGM
+Educação conveniada;Assoc. dos Ex-alunos do Colegio Stella Maris - Creche Madre Alix;Vila Mathias;Rua Emílio Ribas, 121;-46.321129;-23.948149;AEACSM-CMA
+Educação conveniada;Associação Beneficente Euripedes Barsanulfo - Creche Padre Bento;Vila Mathias;Avenida Washington Luis, 28;-46.32578;-23.948205;ABEB-CPB
+Educação conveniada;Associação Casa de Estar;Boqueirão;Avenida Conselheiro Nébias, 737;-46.323613;-23.966987;ACE
+Educação conveniada;Associação Espirita Seara de Jesus - Meimei;Boqueirão;Avenida Washington Luis, 443;-46.328216;-23.963909;MEIMEI
+Educação conveniada;Associação Mundo Novo;Rádio Clube;Rua Vereador Alvaro Guimarões, 311;-46.383542;-23.941694;AMN
+Educação conveniada;Associação Social Sagrada Família Apasem - Instituto São José;Rádio Clube;Praça Doutor Bruno Barbosa, 150;-46.37819;-23.942567;APASEM-ISJ
+Educação conveniada;Associação Social Sagrada Família Apasem - Instituto São José - Unidade II;Vila Gilda;Caminho São José, 115;-46.38652;-23.942612;APASEM-ISJ-II
+Educação conveniada;Associação dos Portadores de Paralisia Cerebral - Simone Horcel;Estuário;Avenida Affonso Penna, 447;-46.304765;-23.968872;APPC
+Educação conveniada;Casa Magica Associação Assistencial e Educacional;Aparecida;Rua Ricardo Pinto, 200;-46.303365;-23.978264;CMAGICA
+Educação conveniada;Casa Vo Benedita;Vila Mathias;Rua Uruguai, 11;-46.317888;-23.942969;VOBENE
+Educação conveniada;Centro Espirita Beneficente 30 de Julho;Vila Mathias;Avenida Senador Feijo, 513;-46.326556;-23.946964;30JULHO
+Educação conveniada;Centro Espirita Ismenia de Jesus - Creche Ismenia de Jesus;Encruzilhada;Rua Campos Melo, 312;-46.32126;-23.952553;CEIH-CIJ
+Educação conveniada;Centro de Convivência Esperanca e Vida;Vila Mathias;Rua Julio de Mesquita, 32;-46.3228;-23.94468;CCEV
+Educação conveniada;Cerex - Eduardo Ballerini;Jabaquara;Avenida Rangel Pestana, 399;-46.340166;-23.94204;CEREX-EB
+Educação conveniada;Comunidade Assistencial Lar Veneranda;Campo Grande;Rua Evaristo da Veiga, 211;-46.340785;-23.958033;CALV
+Educação conveniada;Creche Agape;Bom Retiro;Rua Doutor Washington de Almeida, 221;-46.379932;-23.936602;CA
+Educação conveniada;Creche Anjos do Amanhã;Morro Nova Cintra;Rua Moyses de Freitas, 14;-46.352832;-23.942781;ANJOS
+Educação conveniada;Creche Arcanjo Rafael - Unidade II (chico de Paula);Vila Haddad;Rua Dona Afonsina Proost de Souza, 185;-46.358752;-23.931395;CAR-II
+Educação conveniada;Creche Arcanjo Rafael - Unidade III (marape);Marapé;Rua João Caetano, 123;-46.346914;-23.961561;CAR-III
+Educação conveniada;Creche Arcanjo Rafael - Unidade IV (castelo);Castelo;Rua Doutor Fausto Felicio Brusarosco, 147;-46.380935;-23.946258;CAR-IV
+Educação conveniada;Creche Cecon Estrela Guia - Saieg;Macuco;Rua Almirante Tamandare, 188;-46.309419;-23.96283;SAIEG
+Educação conveniada;Creche Comunitaria Amigos I;Morro São Bento;Rua 15 de Agosto, 456;-46.337259;-23.938713;CCA
+Educação conveniada;Creche Comunitaria Cantinho do Rádio Clube;Rádio Clube;Rua Contra-almirante Esculapio Cesar de Paiva, 408;-46.385418;-23.938023;CC-CRB
+Educação conveniada;Creche Lar Espirita Maria Maximo;Macuco;Rua Doutor Manoel Tourinho, 406;-46.318967;-23.95854;CLEMM
+Educação conveniada;Creche Lar e Felicidade - Assoc. Benef. Sony Basortti Mey;Encruzilhada;Rua Julio Conceição, 351;-46.330045;-23.95535;CLF-ABSB
+Educação conveniada;Creche Maria Ignez;Embaré;Rua Galeão Coutinho, 281;-46.31826;-23.967648;CMI
+Educação conveniada;Creche Menino Jesus;Marapé;Rua Napoleão Laureano, 51;-46.346186;-23.953758;CMJ
+Educação conveniada;Creche Sonho de Crianca;Bom Retiro;Avenida Jovino de Mello, 942;-46.375641;-23.939744;SONHO
+Educação conveniada;Creche Tia Nilda;Vila Gilda;Avenida Brigadeiro Faria Lima, 1187;-46.388258;-23.938969;TIANILDA
+Educação conveniada;Creche e Escola Nossa Senhora da Divina Providencia;Macuco;Avenida Conselheiro Rodrigues Alves, 232;-46.316412;-23.956113;CENSDP
+Educação conveniada;Cruzada das Senhoras Catolicas - Creche Cantinho Alegre;Vila Nova;Avenida Conselheiro Nébias, 156;-46.321278;-23.939694;CSC-CCA
+Educação conveniada;Educandario Analia Franco;Encruzilhada;Avenida Anna Costa, 277;-46.33129;-23.956091;EAF
+Educação conveniada;Educandario Santista;Boqueirão;Avenida Conselheiro Nébias, 680;-46.323702;-23.964153;ES
+Educação conveniada;Escola Portuguesa;Vila Nova;Rua 7 de Setembro, 79;-46.321868;-23.940308;EP
+Educação conveniada;Grupo Espirita Cristão de Santos - Creche Lar Escola Irm Scheilla;Macuco;Rua Doutor Bezerra de Menezes, 160;-46.306322;-23.967335;GECS-CLEIS
+Educação conveniada;Grupo de Amigos do Lar Pobre;Vila Mathias;Rua Silva Jardim, 21;-46.3186;-23.943225;GALP
+Educação conveniada;Instituição de Assistência a Crianca - Professora Edna Souza;Morro São Bento;Rua 15 de Agosto, 1166;-46.337226;-23.938822;IAC-PES
+Educação conveniada;Instituo Evolução - Escola de Educação Inclusiva Celia Pfeifer;Embaré;Rua Conselheiro Lafayette, 91;-46.316688;-23.973111;EVOL-CPFEIFER
+Educação conveniada;Instituto Arte no Dique;Vila Gilda;Avenida Brigadeiro Faria Lima, 1349;-46.387175;-23.938094;ARTDIQUE
+Educação conveniada;Lar das Mocas Cegas;Campo Grande;Avenida Anna Costa, 198;-46.331358;-23.952613;LARMC
+Educação conveniada;N.a.p.n.e - Nucleo de Atendimento a Portadores de Necessidades Especiais;Vila Mathias;Rua Julio Conceição, 53;-46.328669;-23.944718;NAPNE
+Educação conveniada;Nossa Senhora das Gracas Creche e Pre-escola;Ilhéu Alto;Rua 02 - Ilheu Alto;-46.376388;-23.934919;NSRAGRACAS
+Educação conveniada;Nossa Senhora do Carmo Assistência Social da Ponta da Praia;Ponta da Praia;Rua Doutor Egydio Martins, 182;-46.299;-23.985665;NSC-ASPP
+Educação conveniada;Nurex - Nucleo de Reabilitação de Excepcional São Vicente de Paulo;Macuco;Rua Campos Melo, 319;-46.320828;-23.952578;NUREX
+Educação conveniada;Pro Viver - Obras Sociais e Educacionais;Centro;Avenida João Pessoa, 216;-46.324988;-23.935586;PROVIVER
+Educação conveniada;Projeto Tia Egle;Vila Gilda;Rua Ambrosina Amelia Caldeira Tolentino, 45;-46.382269;-23.945601;TIAEGLE
+Educação conveniada;Sociedade Filantropica Ortodoxa São Jorge;Vila Belmiro;Rua Dom João Vi, 12;-46.342207;-23.954014;SFOSJ
+Educação conveniada;Sociedade de Amor a Crianca Arcanjo Rafael;Embaré;Rua Vergueiro Steidel, 57;-46.318673;-23.970362;SACAR
+Educação conveniada;Sociedade de Melhoramentos da Vila Progresso;Vila Progresso;Rua 03 - Vila Progresso, 1790;-46.351487;-23.939191;SMVP
+Educação conveniada;Universidade Aberta do Brasil - Polo Santos;Vila Nova;Rua 7 de Setembro, 34;-46.323246;-23.940283;UAB-SANTOS
+Educação conveniada;União Ancilla Domini;Embaré;Rua Padre Visconti, 12;-46.319515;-23.973937;UAD
+Educação conveniada;Vidas Recicladas - Ong;Macuco;Rua Padre Anchieta, 187;-46.314514;-23.957329;VRICL
+Escola estadual;Centro Estadual de Educação Supletiva Maria Aparecida Pasqualeto Figueredo;Aparecida;Avenida Doutor Epitacio Pessoa, 432;-46.310684;-23.979576;CEES-MAPF
+Escola estadual;Centro Estadual de Ensino Supletivo Professor Doutor Archimedes José Bava;Castelo;Avenida Afonso Schmidt, 1171;-46.38248;-23.943804;CEES-AJB
+Escola estadual;EE Azevedo Júnior;Vila Belmiro;Rua Dom Pedro I, 50;-46.339571;-23.952411;EE-AJ
+Escola estadual;EE Barnabé;Centro;Praça Corrêa de Mello;-46.328159;-23.937231;EE-B
+Escola estadual;EE Canadá;Boqueirão;Rua Mato Grosso, 163;-46.326482;-23.964825;EE-C
+Escola estadual;EE DR. Antônio Ablas Filho;Aparecida;Avenida Bartholomeu de Gusmão, 107;-46.311646;-23.980668;EE-AAF
+Escola estadual;EE Deputado Emílio Justo;Morro Saboó;Rua 03 - Vila Progresso, 2402;-46.349458;-23.939067;EE-EJ
+Escola estadual;EE Dona Luiza Macuco;Ponta da Praia;Avenida Professor Aristóteles Menezes;-46.300427;-23.979995;EE-LM
+Escola estadual;EE Doutor Paulo Filgueiras Júnior;Castelo;Rua Francisco de Barros Mello;-46.379053;-23.949456;EE-PFJ
+Escola estadual;EE João Octavio dos Santos;Morro São Bento;Largo Vasco Carmano Gonçalves;-46.337609;-23.938391;EE-JOS
+Escola estadual;EE Judoca Ricardo Sampaio Cardoso;Caruara;Rua Xavantes;-46.1908;-23.883312;EE-JRSC
+Escola estadual;EE Marquês de São Vicente;Gonzaga;Avenida Bernardino de Campos, 569;-46.338336;-23.964402;EE-SV
+Escola estadual;EE Neves Prado Monteiro;São Jorge;Praça Estado de Israel;-46.37066;-23.951641;EE-NPM
+Escola estadual;EE Olga Cury;Aparecida;Rua Alexandre Fleming;-46.310637;-23.974435;EE-OC
+Escola estadual;EE Padre Bartolomeu de Gusmão;Saboó;Rua Itanhaem, 394;-46.354363;-23.934111;EE-BG
+Escola estadual;EE Professor Benevenuto Madureira;Santa Maria;Praça Maria Coelho Lopes;-46.369582;-23.940458;EE-BM
+Escola estadual;EE Professor Fernando de Azevedo;Castelo;Rua Cordovil Fernandes Lopes, 68;-46.377355;-23.943928;EE-FA
+Escola estadual;EE Professor Francisco Meira;Rádio Clube;Praça Armando Erbisti;-46.38116;-23.938339;EE-FM
+Escola estadual;EE Professor Primo Ferreira;Vila Belmiro;Rua Dom Pedro I, 58;-46.340249;-23.953026;EE-PF
+Escola estadual;EE Professor Suetônio Bittencourt Júnior;Estuário;Praça Visconde de Ouro Preto;-46.301346;-23.971461;EE-SBJ
+Escola estadual;EE Professora Alzira Martins Lichti;Morro Nova Cintra;Rua Torquato Dias, 566;-46.355552;-23.945047;EE-AML
+Escola estadual;EE Professora Gracinda Maria Ferreira;São Jorge;Rua Alan Ciber Pinto, 52;-46.364105;-23.948032;EE-GMF
+Escola estadual;EE Professora Zulmira Campos;Rádio Clube;Praça Marechal Eurico Gaspar Dutra;-46.382005;-23.943522;EE-ZC
+Escola estadual;EE Visconde de São Leopoldo;Macuco;Rua João Guerra, 251;-46.320026;-23.952184;EESAOLEOPOLDO
+Escola estadual;ETEC Aristóteles Ferreira;Aparecida;Avenida Doutor Epitacio Pessoa, 466;-46.309494;-23.97992;ETECARISTOTELES
+Escola estadual;ETEC Dona Escolástica Rosa;Aparecida;Avenida Bartholomeu de Gusmão, 111;-46.311212;-23.981451;ETECDONAESCOLASTICA
+Escola municipal (UME);UME Alcides Lobo Viana;Marapé;Avenida Senador Pinheiro Machado, 606;-46.344522;-23.954585;UME-LV
+Escola municipal (UME);UME Anizio Bento;Areia Branca;Avenida Engenheiro Manoel Ferramenta Júnior;-46.376826;-23.946028;UME-AB
+Escola municipal (UME);UME Auxiliadora da Instrução;Macuco;Praça Rubens Ferreira Martins, 8;-46.30715;-23.964708;UME-AI
+Escola municipal (UME);UME Ayrton Senna da Silva;Campo Grande;Avenida Senador Pinheiro Machado, 617;-46.344215;-23.955667;UME-ASS
+Escola municipal (UME);UME Barão do Rio Branco;Campo Grande;Rua Visconde de Cayru, 217;-46.339348;-23.960645;UME-BRB
+Escola municipal (UME);UME Candinha Ribeiro de Mendonça;Jabaquara;Rua Manuel Nascimento Júnior, 56;-46.337626;-23.941285;UME-CRM
+Escola municipal (UME);UME Cidade de Santos;Embaré;Avenida Senador Dantas, 410;-46.314344;-23.965698;UME-CS
+Escola municipal (UME);UME Claudia Helena dos Santos Oliveira Corrêa;Bom Retiro;Rua Augusto Gomes Pereira, 861;-46.374265;-23.942003;UME-CHSOC
+Escola municipal (UME);UME Colegio Santista;Vila Nova;Rua 7 de Setembro, 34;-46.32326;-23.940386;UME-S
+Escola municipal (UME);UME DR. Cyro de Athayde Carneiro;Morro Nova Cintra;Rua Paulo Clemente Santini, 36;-46.35647;-23.947279;UME-CAC
+Escola municipal (UME);UME DR. Derosse José de Oliveira;Boqueirão;Avenida Conselheiro Nébias, 739;-46.323644;-23.967109;UME-DJO
+Escola municipal (UME);UME DR. Dino Bueno;Encruzilhada;Rua Doutor Guedes Coelho, 107;-46.326636;-23.953622;UME-DB
+Escola municipal (UME);UME DR. Fernando Costa;São Jorge;Rua Luiz Di Renzo, 105;-46.369696;-23.949319;UME-FC
+Escola municipal (UME);UME DR. José Carlos de Azevedo Júnior;São Manoel;Praça Nicolau Geraigire;-46.379131;-23.929302;UME-JCAJ
+Escola municipal (UME);UME DR. José da Costa e Silva Sobrinho;Piratininga;Rua Lucia Hehl Caiaffa, 375;-46.386057;-23.926458;UME-JCSS
+Escola municipal (UME);UME DR. Luiz Lopes;Morro Nova Cintra;Avenida Santista, 65;-46.346512;-23.942963;UME-LL
+Escola municipal (UME);UME DR. Nelson de Toledo Piza;Saboó;Rua Flaminio Levy;-46.348914;-23.933517;UME-NTP
+Escola municipal (UME);UME DR. Porchat de Assis;Ponta da Praia;Rua Ana Pimentel, 23;-46.299052;-23.979524;UME-PA
+Escola municipal (UME);UME DR. Samuel Augusto Leão de Moura;Areia Branca;Avenida Engenheiro Manoel Ferramenta Júnior, 101;-46.372757;-23.948749;UME-SALM
+Escola municipal (UME);UME Deputado Rubens Lara;Morro Nova Cintra;Rua Lucinda de Matos, 293;-46.356048;-23.948063;UME-DRL
+Escola municipal (UME);UME Edson Arantes do Nascimento;Gonzaga;Avenida Anna Costa, 392;-46.332367;-23.96155;UME-EAN
+Escola municipal (UME);UME Elsa Virtuoso;Macuco;Rua Antônio Maia, 146;-46.305024;-23.967449;UME-EV
+Escola municipal (UME);UME Especial Professora Maria Carmelita Proost Villaca;Ponta da Praia;Avenida Professor Aristóteles Menezes, 11;-46.299961;-23.978074;UME-MCPV
+Escola municipal (UME);UME Eunice Caldas;Vila Mathias;Rua São Paulo, 40;-46.334237;-23.947809;UME-EC
+Escola municipal (UME);UME Flavio Cipriano Barbosa;São Manoel;Rua Nicolau Moran, 21;-46.381476;-23.930719;UME-FCB
+Escola municipal (UME);UME Gemma Rebello;Vila Nova;Rua Vereador Freitas Guimarões, 13;-46.320714;-23.94217;UME-GR
+Escola municipal (UME);UME General Clovis Bandeira Brasil;Bom Retiro;Rua Doutor Alamir Barros Franca, 73;-46.369996;-23.935538;UME-GCBB
+Escola municipal (UME);UME Gota de Leite;Encruzilhada;Rua Xavier Pinheiro, 217;-46.322778;-23.950354;UME-GL
+Escola municipal (UME);UME Hilda D Onofrio Papa;Vila Gilda;Avenida Brigadeiro Faria Lima, 835;-46.390661;-23.94111;UME-HDP
+Escola municipal (UME);UME Hilda Rabaca;Vila Haddad;Rua Alvaro Parente;-46.359285;-23.931343;UME-HR
+Escola municipal (UME);UME Irm Maria Dolores;Vila Nova;Rua Bittencourt, 308;-46.319907;-23.93955;UME-IMD
+Escola municipal (UME);UME Irmão José Genesio;Morro José Menino;Rua Pedro Borges Gonçalves, 106;-46.354499;-23.966623;UME-IJG
+Escola municipal (UME);UME José Bonifacio;Vila Nova;Avenida Conselheiro Nébias, 153;-46.320539;-23.939888;UME-JB
+Escola municipal (UME);UME José da Costa Barbosa;Marapé;Rua Doutor Gaspar Ricardo;-46.350543;-23.964456;UME-JCB
+Escola municipal (UME);UME João Walter Sampaio Smolka;Rádio Clube;Rua Professor Nelson Espindola Lobato;-46.383894;-23.937841;UME-JWSS
+Escola municipal (UME);UME Judoca Ricardo Sampaio Cardoso;Caruara;Rua Xavantes, 70;-46.190949;-23.883322;UME-JRS
+Escola municipal (UME);UME Laurival Rodrigues;Morro Nova Cintra;Avenida Prefeito Doutor Antônio Manoel de Carvalho;-46.353569;-23.947282;UME-LR
+Escola municipal (UME);UME Leonor Mendes de Barros;Gonzaga;Praça Fernandes Pacheco;-46.335396;-23.964215;UME-LMB
+Escola municipal (UME);UME Lourdes Ortiz;Aparecida;Rua Ricardo Pinto, 129;-46.305404;-23.979534;UME-LO
+Escola municipal (UME);UME Luiz Alca de Sant Anna;Piratininga;Rua dos Portugueses;-46.388665;-23.92512;UME-LAS
+Escola municipal (UME);UME Luiz Carlos Prestes;Bom Retiro;Praça Maria Coelho Lopes;-46.370225;-23.94009;UME-LCP
+Escola municipal (UME);UME Lydia Federici;Boqueirão;Rua Mato Grosso, 83;-46.325039;-23.964834;UME-LF
+Escola municipal (UME);UME Margareth Buchmann;Embaré;Avenida Doutor Pedro Lessa, 2880;-46.316797;-23.964963;UME-PMB
+Escola municipal (UME);UME Maria Patricia Fogaca;Saboó;Avenida Martins Fontes, 225;-46.341448;-23.929966;UME-MP
+Escola municipal (UME);UME Martins Fontes;Morro Penha;Estrada João Baptista;-46.345669;-23.931669;UME-MF
+Escola municipal (UME);UME Noel Gomes Ferreira;Caruara;Rua Andrade Soares, 187;-46.19002;-23.886363;UME-NGF
+Escola municipal (UME);UME Olavo Bilac;Campo Grande;Rua Carvalho de Mendonça, 601;-46.344043;-23.955263;UME-OB
+Escola municipal (UME);UME Olivia Fernandes;Macuco;Praça Coronel Fernando Prestes;-46.311616;-23.964576;UME-OF
+Escola municipal (UME);UME Padre Francisco Leite;Marapé;Avenida Doutor Moura Ribeiro, 170;-46.350443;-23.956826;UME-PFL
+Escola municipal (UME);UME Padre Leonardo Nunes;Areia Branca;Avenida Afonso Schmidt, 610;-46.376766;-23.947206;UME-PLN
+Escola municipal (UME);UME Padre Lucio Floro;Morro José Menino;Rua Pedro Borges Gonçalves (morro), 2287;-46.355929;-23.964996;UME-PLF
+Escola municipal (UME);UME Padre Waldemar Valle Martins;Macuco;Rua 28 de Setembro, 201;-46.315711;-23.957026;UME-PWVM
+Escola municipal (UME);UME Pedro II;Ponta da Praia;Avenida Professor Aristóteles Menezes, 41;-46.299814;-23.97997;UME-PII
+Escola municipal (UME);UME Prefeito Esmeraldo Tarquinio;Bom Retiro;Rua Doutor Alderico Monteiro Soares;-46.377761;-23.936926;UME-PET
+Escola municipal (UME);UME Prefeito Oswaldo Justo;Vila Haddad;Rua Ana Santos, 125;-46.359596;-23.930929;UME-OJ
+Escola municipal (UME);UME Prefeito Paulo Gomes Barbosa;Jabaquara;Avenida Doutor Waldemar Leão, 184;-46.33491;-23.940563;UME-PPGB
+Escola municipal (UME);UME Professor Antônio Demostenes de Souza Britto;Boqueirão;Avenida Conselheiro Nébias, 772;-46.324148;-23.968102;UME-ADSB
+Escola municipal (UME);UME Professor Antônio de Oliveira Passos Sobrinho;Macuco;Avenida Conselheiro Rodrigues Alves, 197;-46.315731;-23.95648;UME-AOPS
+Escola municipal (UME);UME Professor Avelino da Paz Vieira;Vila Nova;Rua 7 de Setembro, 22;-46.324659;-23.940317;UME-APV
+Escola municipal (UME);UME Professor Cely de Moura Negrini;Rádio Clube;Praça Professor José Oliveira Lopes, 62;-46.380705;-23.94407;UME-CMN
+Escola municipal (UME);UME Professor Florestan Fernandes;Embaré;Rua Oswaldo Cochrane, 91;-46.316063;-23.973907;UME-FF
+Escola municipal (UME);UME Professor Florestan Fernandes I;Embaré;Rua Benjamin Constant, 50;-46.317714;-23.972082;UME-FF-I
+Escola municipal (UME);UME Professor José de Sa Porto;Areia Branca;Rua Tomoichi Kobuchi, 120;-46.370681;-23.946056;UME-JSP
+Escola municipal (UME);UME Professor João Papa Sobrinho;Gonzaga;Rua Goias, 145;-46.328809;-23.961;UME-JPS
+Escola municipal (UME);UME Professor Mario de Almeida Alcantara;Chinês;Rua Mansueto Pierotti, 75;-46.335945;-23.933418;UME-MAA
+Escola municipal (UME);UME Professor Orlando Adegas;Morro Penha;Rua 04 - Morro Penha (antiga Rua P), 80;-46.34299;-23.932409;UME-OA
+Escola municipal (UME);UME Professor Pedro Crescenti;Rádio Clube;Avenida Brigadeiro Faria Lima;-46.388626;-23.942139;UME-PC
+Escola municipal (UME);UME Professor Waldery de Almeida;Bom Retiro;Rua Tenente Americo Moretti;-46.369897;-23.939707;UME-WA
+Escola municipal (UME);UME Professora Emilia Maria Reis;Vila Belmiro;Rua Dom Pedro I;-46.339961;-23.952809;UME-EMR
+Escola municipal (UME);UME Professora Iveta Mesquita Nogueira;Ponta da Praia;Avenida Rei Alberto I, 379;-46.29689;-23.987174;UME-IMN
+Escola municipal (UME);UME Professora Magali Alonso;Morro São Bento;Rua São João;-46.340279;-23.935221;UME-MA
+Escola municipal (UME);UME Professora Maria Helena Roxo;Vila Nova;Praça Iguatemy Martins;-46.318322;-23.940006;UME-MHR
+Escola municipal (UME);UME Professora Maria Lucia Prandi;São Jorge;Avenida Nossa Senhora de Fátima, 915;-46.371757;-23.94947;UME-MLP
+Escola municipal (UME);UME Professora Maria Luiza Alonso Silva;Ponta da Praia;Praça Engenheiro José Reboucas;-46.299737;-23.980308;UME-MLAS
+Escola municipal (UME);UME Professora Maria Luiza Simões Ribeiro;Saboó;Rua Pio Xii, 40;-46.347554;-23.931672;UME-MLSR
+Escola municipal (UME);UME Professora Maria de Lourdes Borges Bernal;Castelo;Rua Arthur Parsloe, 52;-46.379325;-23.949585;UME-MLBB
+Escola municipal (UME);UME Professora Therezinha de Jesus Siqueira Pimentel;Morro São Bento;Rua São Roque;-46.344737;-23.939328;UME-TJSP
+Escola municipal (UME);UME Profissionalizante Acacio de Paula Leite Sampaio;Vila Nova;Rua 7 de Setembro, 14;-46.325386;-23.939839;UMEP-APLS
+Escola municipal (UME);UME Regina Altman;Vila Progresso;Rua 03 - Vila Progresso;-46.351914;-23.939409;UME-RA
+Escola municipal (UME);UME Rural Ilha Diana;Barnabé;Alameda Arlete de Souza Gomes;-46.307642;-23.915299;UME-ID
+Escola municipal (UME);UME Rural Monte Cabrão;Monte Cabrão;Rua Principal - Monte Cabrão;-46.286193;-23.918585;UME-MC
+Escola municipal (UME);UME Sandra Cristina Teixeira Gama;Bom Retiro;Rua Professor Francisco de Domenico;-46.376024;-23.941093;UME-SCTG
+Escola municipal (UME);UME Vereador João Ignacio de Souza;Rádio Clube;Rua Professor Nelson Espindola Lobato;-46.383808;-23.938415;UME-JIS
+Escola municipal (UME);UME Vinte e Oito de Fevereiro;Saboó;Rua Flaminio Levy, 1051;-46.34914;-23.932998;UME-28F
+Escola municipal (UME);UME Yara Nascimento Santini;Castelo;Rua Doutor Fausto Felicio Brusarosco;-46.380679;-23.945503;UME-YNS
+Escola municipal (UME);UME dos Andradas I;Aparecida;Rua Almirante Ernesto de Mello Júnior, 130;-46.306979;-23.975837;UME-AND I
+Escola municipal (UME);UME dos Andradas II;Aparecida;Rua Almirante Ernesto de Mello Júnior, 150;-46.30717;-23.975681;UME-AND II
+Hospital;AFIP;Encruzilhada;Avenida Conselheiro Nébias, 445;-46.3223;-23.953463;AFIP
+Hospital;Apas - Hospital Santo Expedito;Campo Grande;Rua Carvalho de Mendonça, 335;-46.334765;-23.953321;APAS
+Hospital;Beneficencia Portuguesa - Hospital Santo Antônio / Santa Clara;Vila Belmiro;Avenida Bernardino de Campos, 47;-46.336497;-23.950004;HBP
+Hospital;Casa de Saúde de Santos;Boqueirão;Avenida Conselheiro Nébias, 644;-46.323471;-23.962255;HCS
+Hospital;Complexo Hospitalar dos Estivadores;Encruzilhada;Avenida Conselheiro Nébias, 401;-46.321858;-23.95142;CHE
+Hospital;Hospital Ana Costa;Campo Grande;Rua Pedro Americo, 60;-46.333629;-23.957415;HAC
+Hospital;Hospital Frei Galvão;Boqueirão;Rua Doutor Heitor de Moraes, 23;-46.324692;-23.969829;HFG
+Hospital;Hospital Guilherme Alvaro;Boqueirão;Rua Oswaldo Cruz, 197;-46.321161;-23.963276;HGA
+Hospital;Hospital São Lucas;Vila Belmiro;Avenida Anna Costa, 168;-46.331112;-23.951288;HSL
+Hospital;Hospital Vitoria;Vila Belmiro;Rua Monsenhor Paula Rodrigues, 193;-46.33518;-23.950685;HOSP-VIT
+Hospital;Hospital e Maternidade da Zona Noroeste;Castelo;Rua Ministro Agamenon Magalhões;-46.377616;-23.94339;SHM-ZNO
+Hospital;Hospital e Pronto Socorro Infantil Gonzaga;Gonzaga;Avenida Anna Costa, 411;-46.332046;-23.962309;HPSIG
+Hospital;Santa Casa de Misericordia de Santos;Jabaquara;Avenida Doutor Claudio Luiz da Costa, 50;-46.336143;-23.94454;SC
+UBS / USF;UBS da Aparecida;Aparecida;Avenida Doutor Pedro Lessa, 1728;-46.308091;-23.971409;UBS-APA
+UBS / USF;UBS da Conselheiro Nébias;Encruzilhada;Avenida Conselheiro Nébias, 457;-46.322157;-23.953929;UBS-CN
+UBS / USF;UBS da Pompéia / José Menino;Pompéia;Rua Ceará, 11;-46.341549;-23.963279;UBS-P/JM
+UBS / USF;UBS da Ponta da Praia;Ponta da Praia;Praça 1º de Maio;-46.30071;-23.978005;UBS-PP
+UBS / USF;UBS da Vila Mathias;Vila Mathias;Rua Xavier Pinheiro, 284;-46.324913;-23.94969;UBS-VM
+UBS / USF;UBS do Campo Grande;Campo Grande;Rua Carvalho de Mendonça, 607;-46.343515;-23.955221;UBS-CG
+UBS / USF;UBS do Embaré;Embaré;Praça Coronel Fernando Prestes;-46.311185;-23.964868;UBS-EMB
+UBS / USF;UBS do Estuário;Paquetá;Rua Amador Bueno, 333;-46.321943;-23.936329;SEUB-EST
+UBS / USF;UBS do Gonzaga;Gonzaga;Rua Doutor Assis Corrêa, 17;-46.330359;-23.960157;UBS-GON
+UBS / USF;UBS do Marapé;Marapé;Rua São Judas Tadeu;-46.349725;-23.952311;UBS-MP
+UBS / USF;UBS do Porto;Paquetá;Rua General Câmara, 507;-46.316058;-23.935059;UBS-PORTO
+UBS / USF;UBS do Rádio Clube;Rádio Clube;Avenida Hugo Maia, 153;-46.382222;-23.940651;UBS-RC
+UBS / USF;"USF ""Martins Fontes""";Vila Mathias;Rua Luiza Macuco, 40;-46.319353;-23.945437;USF-MF
+UBS / USF;USF / PA Nova Cintra;Morro Nova Cintra;Rua José Oséas Barbosa, 71;-46.351756;-23.943054;USF-PA-NC
+UBS / USF;USF da Alemoa / Chico de Paula;Vila Haddad;Rua Dona Afonsina Proost de Souza;-46.358834;-23.930989;USF-ACP
+UBS / USF;USF da Areia Branca;Areia Branca;Rua Francisco Lourenço Gomes, 118;-46.373419;-23.94545;USF-AB
+UBS / USF;USF da Vila Gilda;Vila Gilda;Avenida Brigadeiro Faria Lima, 1291;-46.387504;-23.938385;USF-VG
+UBS / USF;USF da Vila Nova / Ilha Diana;Vila Nova;Praça Iguatemy Martins, 29;-46.317855;-23.9396;USF-VN/ID
+UBS / USF;USF da Vila Progresso / Santa Maria;Vila Progresso;Travessa 03 - Vila Telma;-46.352864;-23.939066;USF-VP/SM
+UBS / USF;USF da Vila São Jorge / Santa Maria;Santa Maria;Rua Maestro Antônio Garofalo, 682;-46.369118;-23.944687;USF-SJSM
+UBS / USF;USF de Caruara / Monte Cabrão;Caruara;Rua Andrade Soares, 422;-46.190808;-23.883835;USF-C/MC
+UBS / USF;USF do Bom Retiro;Bom Retiro;Rua João Fraccaroli;-46.370226;-23.935745;USF-BRET
+UBS / USF;USF do Castelo;Castelo;Rua Francisco de Barros Mello, 184;-46.378791;-23.948596;USF-CASTELO
+UBS / USF;USF do Estuário;Estuário;Avenida Affonso Penna, 541;-46.302241;-23.970623;USF-EST
+UBS / USF;USF do Jabaquara;Jabaquara;Rua Vasco da Gama, 32;-46.335376;-23.940541;USF-JAB
+UBS / USF;USF do Monte Serrat e Penha;Morro Monte Serrat;Praça Corrêa de Mello, 42;-46.327562;-23.938219;USF-MS/P
+UBS / USF;USF do Morro José Menino;Morro José Menino;Rua Pedro Borges Gonçalves (morro), 77;-46.357657;-23.963106;USF-MJM
+UBS / USF;USF do Morro Pacheco;Morro Pacheco;Rua 05 - Morro Pacheco (antiga Rua A);-46.338358;-23.933235;USF-MP
+UBS / USF;USF do Morro São Bento;Morro São Bento;Rua das Pedras;-46.342474;-23.937009;USF-MSB
+UBS / USF;USF do Piratininga;Piratininga;Praça João de Moraes Chaves;-46.388494;-23.925102;USF-PIRATININGA
+UBS / USF;USF do São Manoel;São Manoel;Praça Nicolau Geraigire;-46.379131;-23.929302;USF-SM
+UBS / USF;USF do Valongo;Saboó;Rua Professora Maria Neusa Cunha;-46.341756;-23.930461;USF-VAL
+UPA / Pronto-Socorro;Pronto-socorro Central;Jabaquara;Avenida Doutor Claudio Luiz da Costa, 280;-46.336249;-23.945672;SEPROS-C
+UPA / Pronto-Socorro;Unidade de Pronto Atendimento da Zona Leste;Estuário;Avenida Affonso Penna, 571;-46.301867;-23.971385;UPA-ZONA LESTE
+UPA / Pronto-Socorro;Unidade de Pronto-atendimento - Central;Vila Mathias;Rua Joaquim Tavora, 260;-46.33455;-23.948464;UPA-CENTRAL
+UPA / Pronto-Socorro;Unidade de Pronto-atendimento - Zona Noroeste;Bom Retiro;Avenida Jovino de Mello, 927;-46.375811;-23.940237;UPA-ZNO
