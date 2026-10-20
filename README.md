@@ -56,6 +56,8 @@ bash scripts/gerar_base.sh          # simplifica a geometria (mapshaper) e gera 
 
 `data/fonte/santos_dados.json` foi baixado do GeoServer da Prefeitura de Santos (`https://egov.santos.sp.gov.br/geoserver/ows`, WFS).
 
+**Corrigir endereço, localização ou categoria de um equipamento:** acrescente uma linha em `data/correcoes_equipamentos.csv` com o nome atual, e se quiser `novo_nome`, `tipo`, `endereco`, `lon` e `lat`. Depois rode os dois scripts acima. As correções valem sobre o dado do GeoServer. Por exemplo, os NIAS (CEU das Artes e Área Continental) estão na categoria **CRAS** por serem extensões do CRAS.
+
 Ao editar à mão `data/bairros_territorios.csv` (separador `;`) ou `data/equipamentos.csv`, rode só `python3 scripts/montar_js.py` para regenerar `data/santos-base.js`.
 
 ## Estrutura
@@ -64,7 +66,8 @@ Ao editar à mão `data/bairros_territorios.csv` (separador `;`) ou `data/equipa
 index.html, app.js, style.css   a ferramenta
 data/santos-base.js             base pronta (geometria + territórios + equipamentos)
 data/bairros_territorios.csv    bairro → zona, região, CRAS, CREAS, saúde (editável)
-data/equipamentos.csv           equipamentos com coordenadas (editável)
+data/equipamentos.csv           equipamentos com coordenadas (gerado)
+data/correcoes_equipamentos.csv correções manuais de endereço, local e categoria
 data/fonte/                     dados originais do GeoServer
 scripts/                        preparação da base
 lib/                            d3 7.9.0 e topojson-client 3.1.0

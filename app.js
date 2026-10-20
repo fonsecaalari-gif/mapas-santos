@@ -42,7 +42,7 @@ const EQUIP = [
   { grupo: 'Assistência social', tipo: 'CRAS', cor: '#b0175f', simb: 'square', tam: 90 },
   { grupo: 'Assistência social', tipo: 'CREAS', cor: '#5b2c8f', simb: 'diamond', tam: 90 },
   { grupo: 'Assistência social', tipo: 'Centro POP', cor: '#5b2c8f', simb: 'triangle', tam: 80 },
-  { grupo: 'Assistência social', tipo: 'Convivência / NIAS', cor: '#d9649b', simb: 'circle', tam: 45 },
+  { grupo: 'Assistência social', tipo: 'Centro de Convivência', cor: '#d9649b', simb: 'circle', tam: 45 },
   { grupo: 'Saúde', tipo: 'UBS / USF', cor: '#1557a8', simb: 'cross', tam: 80 },
   { grupo: 'Saúde', tipo: 'UPA / Pronto-Socorro', cor: '#d6402b', simb: 'cross', tam: 110 },
   { grupo: 'Saúde', tipo: 'CAPS', cor: '#00897b', simb: 'diamond', tam: 70 },
@@ -52,7 +52,7 @@ const EQUIP = [
   { grupo: 'Educação', tipo: 'Educação conveniada', cor: '#8bbf6a', simb: 'circle', tam: 35 },
 ];
 const NOME_CONTAGEM = {
-  'CRAS': 'Nº de CRAS', 'CREAS': 'Nº de CREAS', 'Centro POP': 'Nº de Centros POP', 'Convivência / NIAS': 'Nº de centros de convivência / NIAS',
+  'CRAS': 'Nº de CRAS (inclui NIAS)', 'CREAS': 'Nº de CREAS', 'Centro POP': 'Nº de Centros POP', 'Centro de Convivência': 'Nº de centros de convivência',
   'UBS / USF': 'Nº de UBS / USF', 'UPA / Pronto-Socorro': 'Nº de UPAs / prontos-socorros', 'CAPS': 'Nº de CAPS', 'Hospital': 'Nº de hospitais',
   'Escola municipal (UME)': 'Nº de escolas municipais (UME)', 'Escola estadual': 'Nº de escolas estaduais', 'Educação conveniada': 'Nº de unidades de educação conveniadas',
 };
@@ -278,8 +278,9 @@ function classificar(valores) {
   const vals = nums.slice().sort((a, b) => a - b);
   const casas = casasDecimais(vals);
   let k = Math.min(+E.classes, new Set(vals).size);
-  let cortes = quebras(vals, k, E.metodo);
-  cortes = [...new Set(cortes)].filter(c => c > vals[0] && c < vals[vals.length - 1] + 1e-12).sort((a, b) => a - b);
+  const unicos = [...new Set(vals)];
+  let cortes = unicos.length <= k ? unicos.slice(0, -1) : quebras(vals, k, E.metodo);   // poucos valores: uma faixa para cada
+  cortes = [...new Set(cortes)].filter(c => c >= vals[0] && c < vals[vals.length - 1]).sort((a, b) => a - b);
   // faixa i: valores <= cortes[i]
   const faixa = v => { let i = 0; while (i < cortes.length && v > cortes[i]) i++; return i; };
   const nfx = cortes.length + 1;
@@ -667,7 +668,7 @@ function aplicarPronto(id) {
   E.nivelDados = 'bairro'; E.indicador = 0; E.agregacao = 'soma';
   E.titulo = '';   // título automático acompanha o recorte escolhido
   E.fonte = 'Prefeitura de Santos — GeoServer (unidades organizacionais e bairros)';
-  if (id !== 'area') E.tipo = 'num';
+  E.tipo = 'auto';
   E.texto = textoDosDados(); $('#entrada').value = E.texto;
   $('#relatorio').hidden = true;
   salvarEstado(); atualizarControles(); desenhar();

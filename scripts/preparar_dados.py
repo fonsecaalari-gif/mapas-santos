@@ -101,7 +101,7 @@ def tipo_de(p):
     if s in CRAS: return 'CRAS', CRAS[s]
     if s in CREAS: return ('Centro POP' if s == 'CENTRO-POP' else 'CREAS'), CREAS[s]
     if sec == 'SEDS' and (s.startswith('CECONV') or s.startswith('NIAS')):
-        return 'Convivência / NIAS', titulo(u)
+        return 'Centro de Convivência', titulo(u)
     if sec == 'SMS':
         if 'UNIDADE BASICA DE SAUDE' in u or 'UNIDADE DE SAUDE DA FAMILIA' in u:
             n = titulo(u.replace('SEÇÃO ', '').replace('UNIDADE BASICA DE SAUDE', 'UBS')
@@ -143,6 +143,25 @@ for f in d['unidades']['features']:
                   'lon': round(x, 6), 'lat': round(y, 6), 'sigla_prefeitura': p['sigla']})
 equip.sort(key=lambda e: (e['tipo'], e['nome']))
 
+# Correções manuais (data/correcoes_equipamentos.csv): sobrescrevem endereço e localização pelo nome
+arq_corr = os.path.join(RAIZ, 'data', 'correcoes_equipamentos.csv')
+if os.path.exists(arq_corr):
+    por_nome = {e['nome']: e for e in equip}
+    for c in csv.DictReader(open(arq_corr, encoding='utf-8'), delimiter=';'):
+        e = por_nome.get(c['nome'])
+        if not e:
+            print('AVISO: correção para equipamento inexistente:', c['nome']); continue
+        e['endereco'] = c['endereco'] or e['endereco']
+        if c.get('tipo'): e['tipo'] = c['tipo']
+        if c.get('novo_nome'): e['nome'] = c['novo_nome']
+        if c['lon'] and c['lat']:
+            e['lon'], e['lat'] = round(float(c['lon']), 6), round(float(c['lat']), 6)
+            e['bairro'] = bairro_de(e['lon'], e['lat'])
+        if c['bairro'] and c['bairro'] != e['bairro']:
+            print('AVISO: bairro informado (%s) difere do mapa (%s) para %s' % (c['bairro'], e['bairro'], e['nome']))
+        print('corrigido:', e['nome'], '->', e['tipo'], '/', e['endereco'], '/', e['bairro'])
+    equip.sort(key=lambda e: (e['tipo'], e['nome']))
+
 # ---------- Territorios iniciais (aproximação: equipamento mais proximo dentro da mesma regiao) ----------
 def dist(b, e):
     return math.hypot((b['cx'] - e['lon']) * math.cos(math.radians(23.95)), b['cy'] - e['lat'])
@@ -157,7 +176,7 @@ cras_reg = {
 }
 ubs = por_tipo('UBS / USF')
 for b in bairros:
-    cands = [e for e in por_tipo('CRAS') if e['nome'] in cras_reg[b['regiao']]]
+    cands = [e for e in por_tipo('CRAS') if e['nome'] in cras_reg[b['regiao']]]   # NIAS (extensões) não viram território próprio
     b['cras'] = min(cands, key=lambda e: dist(b, e))['nome']
     b['creas'] = 'CREAS Zona Noroeste e Morros' if b['regiao'] in ('Zona Noroeste', 'Morros') else 'CREAS Zona Leste'
     if b['regiao'] == 'Área Continental':
