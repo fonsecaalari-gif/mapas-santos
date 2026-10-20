@@ -496,10 +496,9 @@ function maiorPoligono(feat) {
   const polys = g.coordinates.map(c => ({ type: 'Polygon', coordinates: c }));
   return d3.greatest(polys, pl => d3.geoArea(pl));
 }
+// rótulo no mapa: nome completo do território (ex.: "CRAS Rádio Clube"), para não parecer nome de bairro
 function nomeCurto(area, nivel) {
-  if (nivel === 'cras' || nivel === 'creas') return area.replace(/^CRAS |^CREAS /, '');
-  if (nivel === 'saude') return area.replace(/^(UBS|USF) (d[aoe]s? )?/, '');
-  return area;
+  return area.replace(/ \(extensão do CRAS\)$/, '');
 }
 function quebrarNome(s, max) {
   const out = []; let cur = '';
@@ -668,6 +667,7 @@ function aplicarPronto(id) {
   E.nivelDados = 'bairro'; E.indicador = 0; E.agregacao = 'soma';
   E.titulo = '';   // título automático acompanha o recorte escolhido
   E.fonte = 'Prefeitura de Santos — GeoServer (unidades organizacionais e bairros)';
+  E.fonteAuto = true;
   E.tipo = 'auto';
   E.texto = textoDosDados(); $('#entrada').value = E.texto;
   $('#relatorio').hidden = true;
@@ -677,6 +677,7 @@ function aplicarPronto(id) {
 function aplicarTexto(manterNivel) {
   const txt = $('#entrada').value;
   E.texto = txt;
+  if (E.fonteAuto && !manterNivel) { E.fonte = ''; E.fonteAuto = false; }
   const r = interpretar(txt, manterNivel ? E.nivelDados : null);
   const rel = $('#relatorio');
   if (!r) { DADOS = { colunas: [], linhas: new Map() }; rel.hidden = true; salvarEstado(); atualizarControles(); desenhar(); return; }
@@ -839,6 +840,7 @@ const liga = (id, campo, conv = v => v, evt = 'change') => $(id).addEventListene
 });
 liga('#nivel-dados', 'nivelDados'); liga('#nivel-mapa', 'nivelMapa'); liga('#agregacao', 'agregacao'); liga('#indicador', 'indicador', Number);
 liga('#titulo', 'titulo', v => v, 'input'); liga('#fonte', 'fonte', v => v, 'input');
+$('#fonte').addEventListener('input', () => { E.fonteAuto = false; salvarEstado(); });
 liga('#tipo', 'tipo'); liga('#paleta', 'paleta'); liga('#classes', 'classes', Number); liga('#metodo', 'metodo');
 liga('#inverter', 'inverter'); liga('#rotulos', 'rotulos'); liga('#vista', 'vista'); liga('#mostrar-valores', 'mostrarValores'); liga('#divisas-bairro', 'divisas');
 $('#btn-modelo').addEventListener('click', baixarModelo);
