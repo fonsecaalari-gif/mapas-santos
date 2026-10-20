@@ -32,6 +32,8 @@ A ferramenta:
 - recebe dados **por bairro** e mostra **por CRAS, zona ou região**, somando, tirando a média, o maior ou o menor valor;
 - aceita várias colunas de indicadores de uma vez, e você escolhe qual mostrar;
 - tem indicadores prontos, como área (km²) e número de CRAS, UBS ou escolas por bairro.
+- deixa **você definir as faixas da legenda**: em "Faixas por", escolha **Definir eu mesmo** e digite os limites, por exemplo `400; 600; 800; 1.000`. Isso gera as faixas "Até 400 · 401 a 600 · 601 a 800 · 801 a 1.000 · Acima de 1.000". Também dá para usar quebras naturais, quantis ou intervalos iguais;
+- permite **trocar a cor e o texto de cada faixa** direto na legenda, por exemplo renomear "1" para "Alta vulnerabilidade". Há ainda uma paleta personalizada (você escolhe as duas cores das pontas), unidade (%, famílias…), casas decimais, título da legenda, subtítulo, tamanho dos nomes, estilo das áreas sem dado e opção de esconder a escala e a seta do norte.
 
 ## Territórios: atenção
 

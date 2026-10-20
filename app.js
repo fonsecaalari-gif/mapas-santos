@@ -36,6 +36,7 @@ const PALETAS = [
   { id: 'Greys', nome: 'Cinzas' },
   { id: 'semaforo', nome: 'Semáforo (verde → vermelho)' },
   { id: 'quali', nome: 'Cores distintas (categorias)' },
+  { id: 'custom', nome: 'Personalizada (escolha 2 cores)' },
 ];
 
 const EQUIP = [
@@ -162,8 +163,12 @@ const PADRAO = {
   texto: '', nivelDados: 'bairro', nivelMapa: 'bairro', agregacao: 'soma', indicador: 0,
   titulo: '', fonte: '', tipo: 'auto', paleta: 'YlOrRd', classes: 5, metodo: 'jenks', inverter: false,
   rotulos: 'dados', vista: 'composto', mostrarValores: false, divisas: true, equip: ['CRAS'],
+  cortesManuais: '', corIni: '#fff3c4', corFim: '#99000d', legEdit: {}, legTitulo: '', legContagem: true,
+  legSemDado: true, semDadoTexto: '', corSemDado: 'hachura', unidade: '', casas: 'auto', subtitulo: '',
+  tamRotulo: 100, escalaNorte: true,
 };
 let E = Object.assign({}, PADRAO, lsGet(CHAVE_ESTADO) || {});
+if (!E.legEdit || typeof E.legEdit !== 'object') E.legEdit = {};
 let DADOS = { colunas: [], linhas: new Map() };   // linhas: área (nível dos dados) -> [valores brutos]
 const salvarEstado = () => lsSet(CHAVE_ESTADO, E);
 
@@ -264,31 +269,74 @@ function classificar(valores) {
       cats = distintos.map(String).sort((a, b) => pos(a) - pos(b) || (pos(a) === 999 ? lista.indexOf(a) - lista.indexOf(b) : 0));
     }
     const cores = coresDe(pal, cats.length, true);
-    const cor = new Map(cats.map((c, i) => [String(c), cores[i % cores.length]]));
-    const casas = todosNum ? casasDecimais(cats) : 0;
+    const casas = !todosNum ? 0 : E.casas === 'auto' ? casasDecimais(cats) : +E.casas;
     const contar = c => lista.filter(x => String(todosNum ? parseNum(x) : x) === String(c)).length;
+    const itens = cats.map((c, i) => ({ chave: 'cat:' + c, corPadrao: cores[i % cores.length], rotuloPadrao: todosNum ? fmtNum(c, casas) : String(c), n: contar(c), i }));
+    aplicarEdicaoLegenda(itens);
+    const cor = new Map(cats.map((c, i) => [String(c), itens[i].cor]));
     return {
       tipo, todosNum,
       corDe: x => cor.get(String(todosNum ? parseNum(x) : x)) || COR_VAZIO,
-      legenda: cats.map(c => ({ cor: cor.get(String(c)), rotulo: todosNum ? fmtNum(c, casas) : c, n: contar(c) })),
-      fmt: x => todosNum ? fmtNum(parseNum(x), casas) : x,
+      legenda: itens,
+      // se a categoria foi renomeada na legenda (ex.: 1 → "Alta"), o mapa usa o mesmo texto
+      fmt: x => { const it = itens.find(i => i.chave === 'cat:' + (todosNum ? parseNum(x) : x)); return it && E.legEdit[it.chave] && E.legEdit[it.chave].rotulo ? it.rotulo : (todosNum ? fmtNum(parseNum(x), casas) : x); },
     };
   }
   // numérico em faixas
   const vals = nums.slice().sort((a, b) => a - b);
-  const casas = casasDecimais(vals);
-  let k = Math.min(+E.classes, new Set(vals).size);
-  const unicos = [...new Set(vals)];
-  let cortes = unicos.length <= k ? unicos.slice(0, -1) : quebras(vals, k, E.metodo);   // poucos valores: uma faixa para cada
-  cortes = [...new Set(cortes)].filter(c => c >= vals[0] && c < vals[vals.length - 1]).sort((a, b) => a - b);
+  const casas = E.casas === 'auto' ? casasDecimais(vals) : +E.casas;
+  const fn = v => fmtNum(v, casas);
+  const fv = v => comUnidade(fn(v));
+  let cortes = E.metodo === 'manual' ? lerCortes(E.cortesManuais) : [];
+  const manual = E.metodo === 'manual' && cortes.length > 0;
+  if (!manual) {
+    const k = Math.min(+E.classes, new Set(vals).size);
+    const unicos = [...new Set(vals)];
+    cortes = unicos.length <= k ? unicos.slice(0, -1) : quebras(vals, k, E.metodo === 'manual' ? 'jenks' : E.metodo);   // poucos valores: uma faixa para cada
+    cortes = [...new Set(cortes)].filter(c => c >= vals[0] && c < vals[vals.length - 1]).sort((a, b) => a - b);
+  }
   // faixa i: valores <= cortes[i]
   const faixa = v => { let i = 0; while (i < cortes.length && v > cortes[i]) i++; return i; };
   const nfx = cortes.length + 1;
   const cores = coresDe(pal, nfx, false);
   const membros = d3.range(nfx).map(() => []);
   vals.forEach(v => membros[faixa(v)].push(v));
-  const legenda = membros.map((m, i) => m.length ? ({ cor: cores[i], rotulo: m[0] === m[m.length - 1] ? fmtNum(m[0], casas) : `${fmtNum(m[0], casas)} – ${fmtNum(m[m.length - 1], casas)}`, n: m.length }) : null).filter(Boolean);
-  return { tipo, todosNum: true, corDe: x => cores[faixa(parseNum(x))], legenda, fmt: x => fmtNum(parseNum(x), casas) };
+  let itens;
+  if (manual) {
+    // faixas fixas: aparecem todas, mesmo vazias, com textos "até / a / acima de"
+    const inteiros = vals.every(Number.isInteger) && cortes.every(Number.isInteger) && (E.casas === 'auto' || +E.casas === 0);
+    itens = d3.range(nfx).map(i => {
+      const lo = cortes[i - 1], hi = cortes[i];
+      const r = comUnidade(i === 0 ? `Até ${fn(hi)}` : i === nfx - 1 ? `Acima de ${fn(lo)}` : inteiros ? `${fn(lo + 1)} a ${fn(hi)}` : `Acima de ${fn(lo)} até ${fn(hi)}`);
+      return { chave: `num:${lo ?? ''}|${hi ?? ''}`, corPadrao: cores[i], rotuloPadrao: r, n: membros[i].length, i };
+    });
+  } else {
+    itens = membros.map((m, i) => m.length ? ({ chave: `num:${m[0]}|${m[m.length - 1]}`, corPadrao: cores[i],
+      rotuloPadrao: m[0] === m[m.length - 1] ? fv(m[0]) : comUnidade(`${fn(m[0])} – ${fn(m[m.length - 1])}`), n: m.length, i }) : null).filter(Boolean);
+  }
+  aplicarEdicaoLegenda(itens);
+  const corFinal = cores.slice();
+  itens.forEach(it => { corFinal[it.i] = it.cor; });
+  return { tipo, todosNum: true, manual, cortes, corDe: x => corFinal[faixa(parseNum(x))], legenda: itens, fmt: x => fv(parseNum(x)) };
+}
+function aplicarEdicaoLegenda(itens) {
+  for (const it of itens) {
+    const ed = E.legEdit[it.chave] || {};
+    it.cor = ed.cor || it.corPadrao;
+    it.rotulo = ed.rotulo || it.rotuloPadrao;
+    it.editado = !!(ed.cor || ed.rotulo);
+  }
+}
+function lerCortes(txt) {
+  let t = String(txt || '').trim();
+  if (!t) return [];
+  const partes = t.includes(';') || t.includes('|') || t.includes('\n') ? t.split(/[;|\n]/) : (/,\s/.test(t) ? t.split(/,\s+/) : t.split(/\s+/));
+  return [...new Set(partes.map(parseNum).filter(v => v != null))].sort((a, b) => a - b);
+}
+function comUnidade(s) {
+  const u = (E.unidade || '').trim();
+  if (!u) return s;
+  return /^[%‰ºª°]/.test(u) ? s + u : s + ' ' + u;
 }
 function quebras(vals, k, metodo) {
   if (k <= 1) return [];
@@ -320,7 +368,8 @@ function jenks(data, k) {      // Fisher–Jenks clássico (dados já ordenados)
 }
 function coresDe(pal, k, categorico) {
   let c;
-  if (pal === 'quali') c = d3.range(k).map(i => d3.schemeTableau10[i % 10]);
+  if (pal === 'custom') c = k === 1 ? [E.corFim] : d3.quantize(d3.interpolateLab(E.corIni, E.corFim), k);
+  else if (pal === 'quali') c = d3.range(k).map(i => d3.schemeTableau10[i % 10]);
   else if (pal === 'semaforo') c = k <= 2 ? ['#1a9850', '#d73027'].slice(0, k) : d3.schemeRdYlGn[Math.min(k, 11)].slice().reverse();
   else {
     const esq = d3['scheme' + pal];
@@ -330,6 +379,7 @@ function coresDe(pal, k, categorico) {
     if (k > 9) c = d3.quantize(d3['interpolate' + pal], k);
   }
   if (c.length < k) c = d3.range(k).map(i => c[i % c.length]);
+  c = c.map(x => d3.color(x).formatHex());
   return E.inverter ? c.slice(0, k).reverse() : c.slice(0, k);
 }
 
@@ -379,12 +429,13 @@ function desenhar() {
   let sub = 'Município de Santos/SP · ' + nivelPorId[nm].nome;
   if (temDados && E.nivelDados !== nm) sub += E.nivelDados === 'bairro' ? ` · ${{ soma: 'soma', media: 'média', max: 'maior valor', min: 'menor valor' }[E.agregacao]} dos bairros` : ' · valor ' + { zona: 'da zona', regiao: 'da região', cras: 'do território de CRAS', creas: 'do território de CREAS', saude: 'do território de saúde' }[E.nivelDados];
   if (!temDados) sub = 'Cole seus dados no painel ao lado para colorir o mapa';
+  else if (E.subtitulo) sub = E.subtitulo;
   svg.append('text').attr('x', 36).attr('y', 78).attr('font-size', 15).attr('fill', '#5b6870').text(sub);
 
   const partes = partesDaVista(E.vista);
   gZoom = svg.append('g').attr('clip-path', 'url(#clip-area)').append('g').attr('class', 'zoomavel');
   const valorDe = area => valores.get(area);
-  const corArea = area => { const o = valorDe(area); return o ? cls.corDe(o.v) : (temDados ? 'url(#hachura)' : COR_VAZIO); };
+  const corArea = area => { const o = valorDe(area); return o ? cls.corDe(o.v) : (temDados ? corSemDado() : COR_VAZIO); };
 
   for (const p of partes) {
     let g;
@@ -430,7 +481,7 @@ function desenhar() {
     // rótulos
     if (E.rotulos !== 'nenhum') {
       const rot = formas.filter(f => E.rotulos === 'todos' || valorDe(f.area));
-      const tamBase = nm === 'bairro' ? (p.principal ? (E.vista === 'completo' ? 8 : 10.5) : 8.5) : (p.principal ? 13 : 10);
+      const tamBase = (nm === 'bairro' ? (p.principal ? (E.vista === 'completo' ? 8 : 10.5) : 8.5) : (p.principal ? 13 : 10)) * (E.tamRotulo || 100) / 100;
       p.gRot = g.append('g').attr('pointer-events', 'none');
       rot.sort((a, b) => d3.geoArea(b.feat) - d3.geoArea(a.feat));
       const ocupados = [];
@@ -450,7 +501,7 @@ function desenhar() {
     }
   }
 
-  norte();
+  if (E.escalaNorte) norte();
 
   // legendas (coluna direita)
   let y = E.vista === 'composto' ? INSET.y + INSET.h + 26 : COL.y + 6;
@@ -466,6 +517,7 @@ function desenhar() {
   configurarZoom(partes, VISTA_ANTERIOR === E.vista);
   VISTA_ANTERIOR = E.vista;
   atualizarEditor();
+  montarEditorLegenda(cls);
   $('#contagem').textContent = `(${DADOS.linhas.size} de ${areasDo(E.nivelDados).length} preenchidos)`;
 }
 
@@ -514,18 +566,22 @@ function norte() {
   gn.append('text').attr('y', 28).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).attr('fill', COR_TINTA).text('N');
 }
 
+function corSemDado() { return { cinza: '#d9dcd6', branco: '#ffffff' }[E.corSemDado] || 'url(#hachura)'; }
 function legendaValores(cls, coluna, y) {
   const g = svg.append('g');
   const x = COL.x;
-  const tituloLeg = quebrarNome(coluna && !/^valor( \d+)?$/i.test(coluna) ? coluna : 'Valor', 34);
+  const tituloLeg = quebrarNome(E.legTitulo || (coluna && !/^valor( \d+)?$/i.test(coluna) ? coluna : 'Valor'), 34);
   tituloLeg.forEach((l, i) => g.append('text').attr('x', x).attr('y', y + i * 17).attr('font-size', 14).attr('font-weight', 700).attr('fill', COR_TINTA).text(l));
   y += (tituloLeg.length - 1) * 17 + 14;
-  const itens = cls.legenda.concat(DADOS.linhas.size ? [{ cor: 'url(#hachura)', rotulo: 'Sem dado', n: null }] : []);
+  const algumSemDado = ULTIMO && ULTIMO.valores.size < areasDo(E.nivelMapa).length;
+  const itens = cls.legenda.concat(E.legSemDado && algumSemDado ? [{ cor: corSemDado(), rotulo: E.semDadoTexto || 'Sem dado', n: null }] : []);
   for (const it of itens) {
     g.append('rect').attr('x', x).attr('y', y).attr('width', 26).attr('height', 17).attr('fill', it.cor).attr('stroke', '#9aa3a8').attr('stroke-width', 0.6).attr('rx', 2);
-    g.append('text').attr('x', x + 36).attr('y', y + 13).attr('font-size', 13).attr('fill', COR_TINTA).text(it.rotulo)
-      .append('tspan').attr('fill', '#8a959b').attr('font-size', 11.5).text(it.n != null ? `  (${it.n})` : '');
-    y += 23;
+    const linhas = quebrarNome(it.rotulo, 36);
+    const t = g.append('text').attr('x', x + 36).attr('y', y + 13).attr('font-size', 13).attr('fill', COR_TINTA);
+    linhas.forEach((l, i) => t.append('tspan').attr('x', x + 36).attr('dy', i ? 16 : 0).text(l));
+    if (E.legContagem && it.n != null) t.append('tspan').attr('fill', '#8a959b').attr('font-size', 11.5).text(`  (${it.n})`);
+    y += 23 + (linhas.length - 1) * 16;
   }
   return y;
 }
@@ -566,6 +622,7 @@ function configurarZoom(partes, manter) {
 }
 function desenharEscala(p, t) {
   svg.selectAll('.escala').remove();
+  if (!E.escalaNorte) return;
   const proj = p.proj;
   const cx = AREA.x + 30, cy = AREA.y + AREA.h - 30;
   const geo = proj.invert([(cx - t.x) / t.k, (cy - t.y) / t.k]);
@@ -629,7 +686,37 @@ function atualizarControles() {
   opcoes($('#paleta'), PALETAS, E.paleta);
   const ehNum = ULTIMO && ULTIMO.cls && ULTIMO.cls.tipo === 'num';
   document.querySelectorAll('.so-num').forEach(el => { el.style.opacity = ehNum || E.tipo === 'num' ? 1 : 0.45; });
+  $('#campo-cortes').hidden = E.metodo !== 'manual';
+  $('#campo-classes').hidden = E.metodo === 'manual';
+  if (document.activeElement !== $('#cortes')) $('#cortes').value = E.cortesManuais;
+  $('#cores-custom').hidden = E.paleta !== 'custom';
+  $('#cor-ini').value = E.corIni; $('#cor-fim').value = E.corFim;
+  $('#leg-titulo').value = E.legTitulo; $('#unidade').value = E.unidade; $('#casas').value = String(E.casas);
+  $('#cor-sem-dado').value = E.corSemDado; $('#sem-dado-texto').value = E.semDadoTexto;
+  $('#leg-contagem').checked = E.legContagem; $('#leg-sem-dado').checked = E.legSemDado;
+  $('#subtitulo').value = E.subtitulo; $('#tam-rotulo').value = E.tamRotulo; $('#tam-rotulo-v').textContent = E.tamRotulo + '%';
+  $('#escala-norte').checked = E.escalaNorte;
 }
+function montarEditorLegenda(cls) {
+  const box = $('#editor-legenda');
+  if (box.contains(document.activeElement) && document.activeElement.type === 'text') return;   // não atrapalha quem está digitando
+  if (!cls) { box.innerHTML = '<p class="dica mini">Cole dados para ver as faixas.</p>'; return; }
+  box.innerHTML = cls.legenda.map(it => `<div class="item ${it.editado ? 'editado' : ''}">
+      <input type="color" value="${esc(d3.color(it.cor) ? d3.color(it.cor).formatHex() : '#cccccc')}" data-chave="${esc(it.chave)}" title="Trocar a cor">
+      <input type="text" value="${esc((E.legEdit[it.chave] || {}).rotulo || '')}" placeholder="${esc(it.rotuloPadrao)}" data-chave="${esc(it.chave)}" title="Texto desta faixa na legenda">
+      <span class="n-area">${it.n}</span></div>`).join('');
+}
+function editarLegenda(ev, campo) {
+  const k = ev.target.dataset.chave; if (!k) return;
+  const ed = Object.assign({}, E.legEdit[k]);
+  const v = ev.target.value.trim();
+  if (v) ed[campo] = v; else delete ed[campo];
+  if (Object.keys(ed).length) E.legEdit[k] = ed; else delete E.legEdit[k];
+  salvarEstado(); desenhar();
+}
+$('#editor-legenda').addEventListener('input', ev => { if (ev.target.type === 'color') editarLegenda(ev, 'cor'); });
+$('#editor-legenda').addEventListener('change', ev => { if (ev.target.type === 'text') editarLegenda(ev, 'rotulo'); });
+$('#btn-leg-reset').addEventListener('click', () => { E.legEdit = {}; salvarEstado(); desenhar(); });
 function montarListaEquip() {
   const cont = d3.rollup(BASE.equipamentos, v => v.length, e => e.tipo);
   let h = '', grupo = '';
@@ -663,6 +750,7 @@ function aplicarPronto(id) {
     const c = d3.rollup(BASE.equipamentos.filter(filtro), v => v.length, e => e.bairro);
     TERR.forEach(x => linhas.set(x.bairro, [String(c.get(x.bairro) || 0)]));
   }
+  limparPersonalizacao();
   DADOS = { colunas: [nome], linhas };
   E.nivelDados = 'bairro'; E.indicador = 0; E.agregacao = 'soma';
   E.titulo = '';   // título automático acompanha o recorte escolhido
@@ -674,6 +762,10 @@ function aplicarPronto(id) {
   salvarEstado(); atualizarControles(); desenhar();
 }
 
+function limparPersonalizacao() {
+  Object.assign(E, { titulo: '', subtitulo: '', legTitulo: '', unidade: '', legEdit: {}, cortesManuais: '' });
+  if (E.metodo === 'manual') E.metodo = 'jenks';
+}
 function aplicarTexto(manterNivel) {
   const txt = $('#entrada').value;
   E.texto = txt;
@@ -684,6 +776,8 @@ function aplicarTexto(manterNivel) {
   const mudouNivel = r.nivel !== E.nivelDados;
   E.nivelDados = r.nivel;
   if (mudouNivel || (E.nivelDados !== 'bairro' && E.nivelMapa !== 'bairro')) E.nivelMapa = r.nivel;
+  // indicador novo (colunas diferentes): zera os textos e ajustes que eram do mapa anterior
+  if (!manterNivel && DADOS.colunas.length && r.colunas.join('|') !== DADOS.colunas.join('|')) limparPersonalizacao();
   DADOS = { colunas: r.colunas, linhas: r.linhas };
   if (E.indicador >= r.colunas.length) E.indicador = 0;
   let h = `<b>${r.linhas.size}</b> ${r.linhas.size === 1 ? 'área reconhecida' : 'áreas reconhecidas'} como <b>${esc(nivelPorId[r.nivel].nome.toLowerCase())}</b>`;
@@ -830,7 +924,7 @@ $('#btn-exemplo').addEventListener('click', () => {
   aplicarTexto(false);
 });
 $('#btn-limpar').addEventListener('click', () => {
-  $('#entrada').value = ''; E.titulo = ''; E.fonte = ''; E.tipo = 'auto'; aplicarTexto(false);
+  $('#entrada').value = ''; limparPersonalizacao(); E.fonte = ''; E.fonteAuto = false; E.tipo = 'auto'; DADOS = { colunas: [], linhas: new Map() }; aplicarTexto(false);
 });
 $('#pronto').addEventListener('change', ev => { aplicarPronto(ev.target.value); ev.target.value = ''; });
 const liga = (id, campo, conv = v => v, evt = 'change') => $(id).addEventListener(evt, ev => {
@@ -841,7 +935,22 @@ const liga = (id, campo, conv = v => v, evt = 'change') => $(id).addEventListene
 liga('#nivel-dados', 'nivelDados'); liga('#nivel-mapa', 'nivelMapa'); liga('#agregacao', 'agregacao'); liga('#indicador', 'indicador', Number);
 liga('#titulo', 'titulo', v => v, 'input'); liga('#fonte', 'fonte', v => v, 'input');
 $('#fonte').addEventListener('input', () => { E.fonteAuto = false; salvarEstado(); });
-liga('#tipo', 'tipo'); liga('#paleta', 'paleta'); liga('#classes', 'classes', Number); liga('#metodo', 'metodo');
+liga('#tipo', 'tipo'); liga('#paleta', 'paleta'); liga('#classes', 'classes', Number);
+liga('#cortes', 'cortesManuais', v => v, 'input');
+liga('#cor-ini', 'corIni', v => v, 'input'); liga('#cor-fim', 'corFim', v => v, 'input');
+liga('#leg-titulo', 'legTitulo', v => v, 'input'); liga('#unidade', 'unidade', v => v, 'input'); liga('#casas', 'casas', v => v === 'auto' ? 'auto' : Number(v));
+liga('#cor-sem-dado', 'corSemDado'); liga('#sem-dado-texto', 'semDadoTexto', v => v, 'input');
+liga('#leg-contagem', 'legContagem'); liga('#leg-sem-dado', 'legSemDado');
+liga('#subtitulo', 'subtitulo', v => v, 'input'); liga('#tam-rotulo', 'tamRotulo', Number, 'input'); liga('#escala-norte', 'escalaNorte');
+// "Definir eu mesmo": começa com os limites que o mapa já está usando
+$('#metodo').addEventListener('change', ev => {
+  E.metodo = ev.target.value;
+  if (E.metodo === 'manual' && !lerCortes(E.cortesManuais).length && ULTIMO && ULTIMO.cls && ULTIMO.cls.cortes) {
+    const nice = ULTIMO.cls.cortes.map(c => { const m = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(c) || 1)) - 1)); return Math.round(c / m) * m; });
+    E.cortesManuais = [...new Set(nice)].map(c => fmtNum(c)).join('; ');
+  }
+  salvarEstado(); atualizarControles(); desenhar();
+});
 liga('#inverter', 'inverter'); liga('#rotulos', 'rotulos'); liga('#vista', 'vista'); liga('#mostrar-valores', 'mostrarValores'); liga('#divisas-bairro', 'divisas');
 $('#btn-modelo').addEventListener('click', baixarModelo);
 $('#btn-png').addEventListener('click', exportarPNG);

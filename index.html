@@ -72,36 +72,71 @@
     </div>
 
     <div class="bloco">
-      <h2><span class="n">3</span> Aparência</h2>
-      <div class="campo"><label for="titulo">Título</label><input id="titulo" type="text" placeholder="Ex.: Vulnerabilidade social por bairro"></div>
-      <div class="campo"><label for="fonte">Fonte / nota</label><input id="fonte" type="text" placeholder="Ex.: SEDS / Vigilância Socioassistencial, 2026"></div>
+      <h2><span class="n">3</span> Faixas, cores e legenda</h2>
       <div class="grade2">
         <div class="campo"><label for="tipo">Tipo de valor</label>
           <select id="tipo"><option value="auto">Automático</option><option value="cat">Categorias / níveis</option><option value="num">Números (faixas)</option></select></div>
-        <div class="campo"><label for="paleta">Cores</label><select id="paleta"></select></div>
-        <div class="campo so-num"><label for="classes">Nº de faixas</label>
-          <select id="classes"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select></div>
         <div class="campo so-num"><label for="metodo">Faixas por</label>
-          <select id="metodo"><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
+          <select id="metodo"><option value="manual">Definir eu mesmo</option><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
       </div>
-      <label class="check"><input type="checkbox" id="inverter"> Inverter cores</label>
+      <div class="campo so-num" id="campo-cortes" hidden>
+        <label for="cortes">Limites das faixas, separados por ponto e vírgula</label>
+        <input id="cortes" type="text" placeholder="Ex.: 400; 600; 800; 1.000">
+        <p class="dica mini">“400; 600; 800” gera: até 400 · 401 a 600 · 601 a 800 · acima de 800.</p>
+      </div>
+      <div class="grade2">
+        <div class="campo so-num" id="campo-classes"><label for="classes">Nº de faixas</label>
+          <select id="classes"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+        <div class="campo"><label for="paleta">Cores</label><select id="paleta"></select></div>
+      </div>
+      <div class="linha" id="cores-custom" hidden>
+        <label class="cor-par">De <input type="color" id="cor-ini"></label>
+        <label class="cor-par">até <input type="color" id="cor-fim"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="inverter"> Inverter a ordem das cores</label>
+
+      <div class="campo"><label>Legenda: clique na cor para trocar e escreva o texto que quiser</label>
+        <div id="editor-legenda" class="editor-legenda"><p class="dica mini">Cole dados para ver as faixas.</p></div>
+      </div>
+      <div class="linha"><button id="btn-leg-reset" class="sec">Restaurar cores e textos da legenda</button></div>
+      <div class="campo"><label for="leg-titulo">Título da legenda</label><input id="leg-titulo" type="text" placeholder="Automático (nome da coluna)"></div>
+      <div class="grade2">
+        <div class="campo"><label for="unidade">Unidade</label><input id="unidade" type="text" placeholder="Ex.: %, famílias"></div>
+        <div class="campo"><label for="casas">Casas decimais</label>
+          <select id="casas"><option value="auto">Automático</option><option value="0">0</option><option value="1">1</option><option value="2">2</option></select></div>
+        <div class="campo"><label for="cor-sem-dado">Áreas sem dado</label>
+          <select id="cor-sem-dado"><option value="hachura">Hachurado</option><option value="cinza">Cinza</option><option value="branco">Branco</option></select></div>
+        <div class="campo"><label for="sem-dado-texto">Texto “sem dado”</label><input id="sem-dado-texto" type="text" placeholder="Sem dado"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="leg-contagem"> Mostrar quantas áreas há em cada faixa (n)</label>
+      <label class="check"><input type="checkbox" id="leg-sem-dado"> Mostrar “sem dado” na legenda</label>
+    </div>
+
+    <div class="bloco">
+      <h2><span class="n">4</span> Textos e aparência</h2>
+      <div class="campo"><label for="titulo">Título</label><input id="titulo" type="text" placeholder="Automático"></div>
+      <div class="campo"><label for="subtitulo">Subtítulo</label><input id="subtitulo" type="text" placeholder="Automático (município e recorte)"></div>
+      <div class="campo"><label for="fonte">Fonte / nota</label><input id="fonte" type="text" placeholder="Ex.: CadÚnico / SEDS, out/2026"></div>
       <div class="grade2">
         <div class="campo"><label for="rotulos">Nomes no mapa</label>
           <select id="rotulos"><option value="dados">Só áreas com dado</option><option value="todos">Todos</option><option value="nenhum">Nenhum</option></select></div>
         <div class="campo"><label for="vista">Enquadramento</label>
           <select id="vista"><option value="composto">Ilha + quadro continental</option><option value="completo">Município inteiro</option><option value="ilha">Só área insular</option><option value="continente">Só área continental</option></select></div>
       </div>
+      <div class="campo"><label for="tam-rotulo">Tamanho dos nomes: <span id="tam-rotulo-v">100%</span></label>
+        <input id="tam-rotulo" type="range" min="60" max="180" step="10"></div>
       <label class="check"><input type="checkbox" id="mostrar-valores"> Mostrar o valor junto ao nome</label>
       <label class="check"><input type="checkbox" id="divisas-bairro" checked> Mostrar divisas dos bairros</label>
+      <label class="check"><input type="checkbox" id="escala-norte"> Mostrar escala e seta do norte</label>
     </div>
 
     <div class="bloco">
-      <h2><span class="n">4</span> Equipamentos no mapa</h2>
+      <h2><span class="n">5</span> Equipamentos no mapa</h2>
       <div id="lista-equip" class="lista-equip"></div>
     </div>
 
     <div class="bloco exportar">
-      <h2><span class="n">5</span> Baixar</h2>
+      <h2><span class="n">6</span> Baixar</h2>
       <div class="linha">
         <button id="btn-png" class="primario">Imagem PNG</button>
         <button id="btn-pdf" class="sec">PDF / imprimir</button>
@@ -173,6 +208,7 @@ CRAS São Bento           500                     310</pre>
     <ul>
       <li><b>Dados por bairro, mapa por CRAS:</b> cole por bairro e mude “Mostrar o mapa por” para CRAS. A ferramenta soma (ou faz a média) dos bairros de cada território.</li>
       <li><b>Dados por CRAS, mapa por bairro:</b> cada bairro recebe o valor do seu território.</li>
+      <li><b>Escolher as faixas:</b> em “Faixas por”, escolha <b>Definir eu mesmo</b> e digite os limites, por exemplo <code>400; 600; 800; 1.000</code>. Na legenda, clique em cada cor para trocá-la e reescreva o texto de cada faixa (ex.: “1” → “Alta vulnerabilidade”).</li>
       <li><b>Categorias × números:</b> valores como 1, 2, 3 (até 10) ou textos (“alta”, “média”) viram categorias. Valores como 500 e 5.000 viram faixas. Dá para trocar em “Tipo de valor”.</li>
       <li>Números podem vir no formato brasileiro: <code>5.000</code>, <code>12,5</code>, <code>35%</code>.</li>
       <li>Não sabe o nome exato? Clique em <b>Baixar lista de nomes</b>, preencha no Excel e cole de volta.</li>
