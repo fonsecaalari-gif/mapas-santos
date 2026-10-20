@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapas de Santos</title>
+<meta name="description" content="Gere mapas de Santos (ilha e área continental) com qualquer indicador por bairro, zona, região ou território de CRAS, CREAS e saúde.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topo">
+  <div class="marca">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 3v15M15 6v15" stroke="currentColor" stroke-width="1.8"/></svg>
+    <strong>Mapas de Santos</strong>
+    <span class="sub">indicadores por bairro, zona e território</span>
+  </div>
+  <nav class="abas" role="tablist">
+    <button role="tab" data-aba="mapa" class="ativa">Mapa</button>
+    <button role="tab" data-aba="territorios">Territórios</button>
+    <button role="tab" data-aba="ajuda">Como usar</button>
+  </nav>
+</header>
+
+<main>
+<!-- ============ ABA MAPA ============ -->
+<section id="aba-mapa" class="aba ativa">
+  <aside class="painel">
+    <div class="bloco">
+      <h2><span class="n">1</span> Cole seus dados</h2>
+      <p class="dica">Copie do Excel duas colunas, <b>área</b> e <b>valor</b>, e cole aqui. Pode ter várias colunas de indicadores.</p>
+      <textarea id="entrada" rows="7" spellcheck="false" placeholder="Bairro&#9;Vulnerabilidade&#10;Rádio Clube&#9;1&#10;Gonzaga&#9;3&#10;Caruara&#9;1"></textarea>
+      <div class="linha">
+        <button id="btn-aplicar" class="primario">Gerar mapa</button>
+        <button id="btn-exemplo" class="sec">Exemplo</button>
+        <button id="btn-limpar" class="sec">Limpar</button>
+      </div>
+      <div id="relatorio" class="relatorio" hidden></div>
+      <div class="campo">
+        <label for="pronto">ou use um indicador pronto</label>
+        <select id="pronto">
+          <option value="">—</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bloco">
+      <h2><span class="n">2</span> Recorte</h2>
+      <div class="campo">
+        <label for="nivel-dados">Os dados estão por</label>
+        <select id="nivel-dados"></select>
+      </div>
+      <div class="campo">
+        <label for="nivel-mapa">Mostrar o mapa por</label>
+        <select id="nivel-mapa"></select>
+      </div>
+      <div class="campo" id="campo-agregacao" hidden>
+        <label for="agregacao">Juntar os bairros por</label>
+        <select id="agregacao">
+          <option value="soma">Soma (ex.: pessoas, famílias)</option>
+          <option value="media">Média simples</option>
+          <option value="max">Maior valor</option>
+          <option value="min">Menor valor</option>
+        </select>
+      </div>
+      <div class="campo" id="campo-indicador" hidden>
+        <label for="indicador">Indicador</label>
+        <select id="indicador"></select>
+      </div>
+      <div class="linha">
+        <button id="btn-modelo" class="sec">Baixar lista de nomes (Excel)</button>
+      </div>
+    </div>
+
+    <div class="bloco">
+      <h2><span class="n">3</span> Aparência</h2>
+      <div class="campo"><label for="titulo">Título</label><input id="titulo" type="text" placeholder="Ex.: Vulnerabilidade social por bairro"></div>
+      <div class="campo"><label for="fonte">Fonte / nota</label><input id="fonte" type="text" placeholder="Ex.: SEDS / Vigilância Socioassistencial, 2026"></div>
+      <div class="grade2">
+        <div class="campo"><label for="tipo">Tipo de valor</label>
+          <select id="tipo"><option value="auto">Automático</option><option value="cat">Categorias / níveis</option><option value="num">Números (faixas)</option></select></div>
+        <div class="campo"><label for="paleta">Cores</label><select id="paleta"></select></div>
+        <div class="campo so-num"><label for="classes">Nº de faixas</label>
+          <select id="classes"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select></div>
+        <div class="campo so-num"><label for="metodo">Faixas por</label>
+          <select id="metodo"><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
+      </div>
+      <label class="check"><input type="checkbox" id="inverter"> Inverter cores</label>
+      <div class="grade2">
+        <div class="campo"><label for="rotulos">Nomes no mapa</label>
+          <select id="rotulos"><option value="dados">Só áreas com dado</option><option value="todos">Todos</option><option value="nenhum">Nenhum</option></select></div>
+        <div class="campo"><label for="vista">Enquadramento</label>
+          <select id="vista"><option value="composto">Ilha + quadro continental</option><option value="completo">Município inteiro</option><option value="ilha">Só área insular</option><option value="continente">Só área continental</option></select></div>
+      </div>
+      <label class="check"><input type="checkbox" id="mostrar-valores"> Mostrar o valor junto ao nome</label>
+      <label class="check"><input type="checkbox" id="divisas-bairro" checked> Mostrar divisas dos bairros</label>
+    </div>
+
+    <div class="bloco">
+      <h2><span class="n">4</span> Equipamentos no mapa</h2>
+      <div id="lista-equip" class="lista-equip"></div>
+    </div>
+
+    <div class="bloco exportar">
+      <h2><span class="n">5</span> Baixar</h2>
+      <div class="linha">
+        <button id="btn-png" class="primario">Imagem PNG</button>
+        <button id="btn-pdf" class="sec">PDF / imprimir</button>
+        <button id="btn-svg" class="sec">SVG</button>
+        <button id="btn-csv" class="sec">Tabela CSV</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="palco">
+    <div class="moldura" id="moldura">
+      <svg id="mapa" viewBox="0 0 1200 860" role="img" aria-label="Mapa de Santos"></svg>
+      <div class="zoom">
+        <button id="zoom-mais" title="Aproximar">+</button>
+        <button id="zoom-menos" title="Afastar">−</button>
+        <button id="zoom-reset" title="Voltar ao enquadramento">⤢</button>
+      </div>
+      <div id="tooltip" class="tooltip" hidden></div>
+    </div>
+    <details class="tabela-valores">
+      <summary>Editar valores um a um <span id="contagem"></span></summary>
+      <div id="editor-valores" class="editor-valores"></div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ ABA TERRITÓRIOS ============ -->
+<section id="aba-territorios" class="aba">
+  <div class="conteudo">
+    <div class="aviso">
+      <b>Atenção:</b> os limites de bairro e as Prefeituras Regionais são oficiais (GeoServer da Prefeitura). Já a divisão de bairros por
+      <b>CRAS, CREAS e unidade de saúde</b> é uma <b>primeira aproximação</b>: cada bairro foi ligado ao equipamento mais próximo dentro da
+      sua região. Corrija aqui; as mudanças ficam salvas neste navegador e podem ser baixadas em CSV.
+    </div>
+    <div class="linha">
+      <button id="terr-baixar" class="primario">Baixar territórios (CSV)</button>
+      <label class="sec botao-arquivo">Importar CSV<input type="file" id="terr-importar" accept=".csv,.txt" hidden></label>
+      <button id="terr-restaurar" class="sec">Restaurar padrão</button>
+      <input id="terr-busca" type="search" placeholder="Buscar bairro…">
+      <span id="terr-status" class="status"></span>
+    </div>
+    <div class="tabela-rolagem">
+      <table id="tabela-terr">
+        <thead><tr><th>Bairro</th><th>Região (oficial)</th><th>Zona</th><th>CRAS</th><th>CREAS</th><th>Saúde (UBS/USF)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <datalist id="dl-zona"></datalist><datalist id="dl-cras"></datalist><datalist id="dl-creas"></datalist><datalist id="dl-saude"></datalist>
+  </div>
+</section>
+
+<!-- ============ ABA AJUDA ============ -->
+<section id="aba-ajuda" class="aba">
+  <div class="conteudo texto">
+    <h2>Como usar em 1 minuto</h2>
+    <ol>
+      <li>No Excel, deixe uma coluna com o <b>nome da área</b> (bairro, zona, CRAS…) e outra com o <b>valor</b>. Selecione e copie (Ctrl+C).</li>
+      <li>Cole no quadro <b>1. Cole seus dados</b> e clique em <b>Gerar mapa</b>. A ferramenta reconhece sozinha se os nomes são bairros, zonas ou territórios, e avisa se algum nome não foi reconhecido.</li>
+      <li>Escreva o título e a fonte, escolha as cores e clique em <b>Imagem PNG</b> ou <b>PDF</b>.</li>
+    </ol>
+    <h3>Exemplos do que dá para colar</h3>
+<pre>Bairro        Vulnerabilidade
+Rádio Clube   1
+Gonzaga       3</pre>
+<pre>Território               Famílias no CadÚnico   Atendimentos
+CRAS Rádio Clube         5000                    1200
+CRAS São Bento           500                     310</pre>
+    <h3>Dicas</h3>
+    <ul>
+      <li><b>Dados por bairro, mapa por CRAS:</b> cole por bairro e mude “Mostrar o mapa por” para CRAS. A ferramenta soma (ou faz a média) dos bairros de cada território.</li>
+      <li><b>Dados por CRAS, mapa por bairro:</b> cada bairro recebe o valor do seu território.</li>
+      <li><b>Categorias × números:</b> valores como 1, 2, 3 (até 10) ou textos (“alta”, “média”) viram categorias. Valores como 500 e 5.000 viram faixas. Dá para trocar em “Tipo de valor”.</li>
+      <li>Números podem vir no formato brasileiro: <code>5.000</code>, <code>12,5</code>, <code>35%</code>.</li>
+      <li>Não sabe o nome exato? Clique em <b>Baixar lista de nomes</b>, preencha no Excel e cole de volta.</li>
+      <li>Acentos e maiúsculas não importam: “radio clube”, “RÁDIO CLUBE” e “Rádio Clube” funcionam.</li>
+    </ul>
+    <h3>De onde vêm os dados do mapa</h3>
+    <p>Bairros, Prefeituras Regionais e localização dos equipamentos: GeoServer da Prefeitura Municipal de Santos (<code>egov.santos.sp.gov.br/geoserver</code>), camadas <i>bairros</i>, <i>subprefeituras</i> e <i>unidadeorganizacional</i>. Zona Orla × Zona Intermediária e os territórios de CRAS, CREAS e saúde são aproximações editáveis na aba Territórios.</p>
+    <p id="meta-fonte" class="dica"></p>
+  </div>
+</section>
+</main>
+
+<script src="lib/d3.min.js"></script>
+<script src="lib/topojson-client.min.js"></script>
+<script src="data/santos-base.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
