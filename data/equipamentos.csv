@@ -10,17 +10,17 @@ CAPS;CAPS Álcool e Drogas Infanto Juvenil;Vila Mathias;Avenida Conselheiro Néb
 CAPS;CAPS Álcool e Drogas da ZN e Morros II;Macuco;Rua Silva Jardim, 354;-46.320171;-23.954091;CAPS AD ZNO
 CAPS;CAPS Álcool e Drogas da Zoi, RCH e Morros I;Vila Belmiro;Rua Monsenhor Paula Rodrigues, 130;-46.332869;-23.950544;CAPS AD ZOI
 CRAS;CRAS Bom Retiro;Caneleira;Avenida Nossa Senhora de Fátima, 517;-46.364677;-23.941135;SECRAS-BR
-CRAS;CRAS Centro Histórico e Área Continental;Centro;Avenida João Pessoa, 300;-46.322969;-23.93608;SECRAS-RCH/AC
+CRAS;CRAS Centro;Centro;Avenida João Pessoa, 300;-46.322969;-23.93608;SECRAS-RCH/AC
 CRAS;CRAS Chico de Paula;Chico de Paula;Avenida Marginal da Via Anchieta (sp-150), 218;-46.365809;-23.930281;SECRAS-CP
 CRAS;CRAS Nova Cintra;Morro Nova Cintra;Avenida Santista, 655;-46.352004;-23.94449;SECRAS-NC
-CRAS;CRAS Orla e Intermediária;Macuco;Avenida Affonso Penna, 185;-46.3156;-23.961626;SECRAS-ZOI
 CRAS;CRAS Rádio Clube;Rádio Clube;Rua Tenente Durval do Amaral, 366;-46.388383;-23.939473;SECRAS-RC
 CRAS;CRAS São Bento;Morro São Bento;Rua Santa Ângela, 156;-46.336917;-23.936663;SECRAS-SB
 CRAS;CRAS São Manoel;São Manoel;Rua Coronel Feliciano Narciso Bicudo, 655;-46.383778;-23.927824;SECRAS-SM
-CRAS;NIAS CEU das Artes (extensão do CRAS);Castelo;Praça da Paz Universal;-46.379745;-23.947874;NIAS-CA
-CRAS;NIAS Área Continental (extensão do CRAS);Caruara;Rua Xavantes, 31;-46.191553;-23.883475;NIAS-AC
-CREAS;CREAS Zona Leste;Vila Mathias;Avenida Washington Luís, 49;-46.325087;-23.949301;SECREAS-ZONA LESTE
-CREAS;CREAS Zona Noroeste e Morros;Saboó;Rua Cananeia, 269;-46.353708;-23.932141;SECREAS-ZNO/MORROS
+CRAS;CRAS ZOI;Macuco;Avenida Affonso Penna, 185;-46.3156;-23.961626;SECRAS-ZOI
+CRAS;NIAS CEU das Artes;Castelo;Praça da Paz Universal;-46.379745;-23.947874;NIAS-CA
+CRAS;NIAS Área Continental;Caruara;Rua Xavantes, 31;-46.191553;-23.883475;NIAS-AC
+CREAS;CREAS ZL;Vila Mathias;Avenida Washington Luís, 49;-46.325087;-23.949301;SECREAS-ZONA LESTE
+CREAS;CREAS ZNO;Saboó;Rua Cananeia, 269;-46.353708;-23.932141;SECREAS-ZNO/MORROS
 Centro POP;Centro POP;Paquetá;Rua Amador Bueno, 446;-46.319082;-23.937836;CENTRO-POP
 Centro de Convivência;Centro de Convivência da Caneleira;Caneleira;Rua Gilberto Franco Silva, 317;-46.366037;-23.944533;CECONV-CN
 Centro de Convivência;Centro de Convivência da Área Continental;Caruara;Rua Tamoio, 265;-46.189899;-23.888728;CECONV-AC

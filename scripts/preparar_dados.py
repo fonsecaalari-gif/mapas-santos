@@ -92,8 +92,8 @@ def titulo(t):
 
 CRAS = {'SECRAS-SM': 'CRAS São Manoel', 'SECRAS-CP': 'CRAS Chico de Paula', 'SECRAS-BR': 'CRAS Bom Retiro',
         'SECRAS-RC': 'CRAS Rádio Clube', 'SECRAS-NC': 'CRAS Nova Cintra', 'SECRAS-SB': 'CRAS São Bento',
-        'SECRAS-RCH/AC': 'CRAS Centro Histórico e Área Continental', 'SECRAS-ZOI': 'CRAS Orla e Intermediária'}
-CREAS = {'SECREAS-ZONA LESTE': 'CREAS Zona Leste', 'SECREAS-ZNO/MORROS': 'CREAS Zona Noroeste e Morros',
+        'SECRAS-RCH/AC': 'CRAS Centro', 'SECRAS-ZOI': 'CRAS ZOI'}
+CREAS = {'SECREAS-ZONA LESTE': 'CREAS ZL', 'SECREAS-ZNO/MORROS': 'CREAS ZNO',
          'CENTRO-POP': 'Centro POP'}
 
 def tipo_de(p):
@@ -170,15 +170,15 @@ por_tipo = lambda t: [e for e in equip if e['tipo'] == t]
 cras_reg = {
     'Zona Noroeste': ['CRAS São Manoel', 'CRAS Chico de Paula', 'CRAS Bom Retiro', 'CRAS Rádio Clube'],
     'Morros': ['CRAS Nova Cintra', 'CRAS São Bento'],
-    'Região Central Histórica': ['CRAS Centro Histórico e Área Continental'],
-    'Área Continental': ['CRAS Centro Histórico e Área Continental'],
-    'Orla e Zona Intermediária': ['CRAS Orla e Intermediária'],
+    'Região Central Histórica': ['CRAS Centro'],
+    'Área Continental': ['CRAS Centro'],
+    'Orla e Zona Intermediária': ['CRAS ZOI'],
 }
 ubs = por_tipo('UBS / USF')
 for b in bairros:
     cands = [e for e in por_tipo('CRAS') if e['nome'] in cras_reg[b['regiao']]]   # NIAS (extensões) não viram território próprio
     b['cras'] = min(cands, key=lambda e: dist(b, e))['nome']
-    b['creas'] = 'CREAS Zona Noroeste e Morros' if b['regiao'] in ('Zona Noroeste', 'Morros') else 'CREAS Zona Leste'
+    b['creas'] = 'CREAS ZNO' if b['regiao'] in ('Zona Noroeste', 'Morros') else 'CREAS ZL'
     if b['regiao'] == 'Área Continental':
         b['saude'] = next(e['nome'] for e in ubs if 'Caruara' in e['nome'])
     else:

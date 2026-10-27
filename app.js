@@ -104,6 +104,17 @@ const slug = s => chave(s).replace(/ /g, '-').slice(0, 60) || 'mapa';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ------------------------------------------------------------------ territórios (editáveis)
+// nomes antigos (ou por extenso) que continuam sendo reconhecidos ao colar dados
+const SINONIMOS = {
+  'CRAS Centro': ['CRAS Centro Histórico e Área Continental', 'CRAS Região Central Histórica', 'CRAS RCH', 'CRAS Centro Histórico'],
+  'CRAS ZOI': ['CRAS Orla e Intermediária', 'CRAS Zona da Orla e Intermediária', 'CRAS Orla', 'CRAS Zona da Orla'],
+  'CREAS ZL': ['CREAS Zona Leste'],
+  'CREAS ZNO': ['CREAS Zona Noroeste e Morros', 'CREAS Zona Noroeste', 'CREAS ZNO e Morros'],
+  'NIAS CEU das Artes': ['NIAS CEU das Artes (extensão do CRAS)', 'CEU das Artes'],
+  'NIAS Área Continental': ['NIAS Área Continental (extensão do CRAS)', 'NIAS AC'],
+};
+const NOME_ATUAL = {};
+for (const [novo, antigos] of Object.entries(SINONIMOS)) for (const a of antigos) NOME_ATUAL[a] = novo;
 const TERR_PADRAO = BASE.territorios.map(t => ({ ...t }));
 const REGIAO_FIXA = Object.fromEntries(TERR_PADRAO.map(t => [t.bairro, t.regiao]));
 const CONTINENTAL = b => REGIAO_FIXA[b] === 'Área Continental';
@@ -112,7 +123,11 @@ let terrPorBairro = {};
 function carregarTerritorios() {
   const salvo = lsGet(CHAVE_TERR);
   const base = TERR_PADRAO.map(t => ({ ...t }));
-  if (salvo && typeof salvo === 'object') base.forEach(t => Object.assign(t, salvo[t.bairro] || {}));
+  if (salvo && typeof salvo === 'object') base.forEach(t => {
+    const ed = Object.assign({}, salvo[t.bairro] || {});
+    for (const c of Object.keys(ed)) if (NOME_ATUAL[ed[c]]) ed[c] = NOME_ATUAL[ed[c]];   // edições feitas com nomes antigos
+    Object.assign(t, ed);
+  });
   return base;
 }
 function indexarTerritorios() { terrPorBairro = Object.fromEntries(TERR.map(t => [t.bairro, t])); }
@@ -144,6 +159,9 @@ function indiceNomes(nivel) {
     if (k.startsWith('morro ')) add(fraco, k.slice(6), nome);
     if (nivel === 'saude') add(fraco, semPrefixo(k.replace(/\b(ubs|usf|pa)\b/g, ' ').replace(/\s+/g, ' ').trim()), nome);
   }
+  const nomesNivel = new Set(areasDo(nivel));
+  for (const [novo, antigos] of Object.entries(SINONIMOS)) if (nomesNivel.has(novo))
+    for (const a of antigos) { add(forte, chave(a), novo); add(fraco, semPrefixo(chave(a)), novo); }
   const idx = new Map();
   for (const [k, s] of fraco) if (s.size === 1) idx.set(k, [...s][0]);
   for (const [k, s] of forte) if (s.size === 1) idx.set(k, [...s][0]);
