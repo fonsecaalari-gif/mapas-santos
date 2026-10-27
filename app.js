@@ -799,8 +799,38 @@ function montarEditorLegenda(cls) {
       <input type="text" value="${esc((E.legEdit[it.chave] || {}).rotulo || '')}" placeholder="${esc(it.rotuloPadrao)}" data-chave="${esc(it.chave)}" title="Texto desta faixa na legenda">
       <span class="n-area">${it.n}</span></div>`).join('');
 }
+// Se a pessoa escreve "21-36" no texto de uma faixa automática, ela quer mudar o LIMITE, não só o texto:
+// transforma as faixas automáticas em faixas montadas (De–Até) com esse limite.
+function converterParaFaixas(chaveEditada, texto) {
+  const r = lerFaixasTexto(texto);
+  if (!r.faixas || r.faixas.length !== 1 || !fin(r.faixas[0].de) || !fin(r.faixas[0].ate)) return false;
+  const cls = ULTIMO && ULTIMO.cls; if (!cls || cls.tipo !== 'num') return false;
+  const atual = cls.legenda.map(it => {
+    const [de, ate] = it.chave.slice(4).split('|').map(Number);
+    const ed = E.legEdit[it.chave] || {};
+    const pedida = it.chave === chaveEditada ? r.faixas[0] : (lerFaixasTexto(ed.rotulo || '').faixas || [])[0];
+    const f = pedida && fin(pedida.de) && fin(pedida.ate) ? { de: pedida.de, ate: pedida.ate } : { de, ate };
+    return { ...f, deExcl: false, rotulo: '', cor: ed.cor || '' };
+  });
+  // arruma sobreposições: cada faixa começa depois da anterior; faixas engolidas somem
+  const inteiros = valoresAtuais().every(Number.isInteger) && atual.every(f => Number.isInteger(f.de) && Number.isInteger(f.ate));
+  const editada = atual.find((f, i) => cls.legenda[i].chave === chaveEditada);
+  atual.sort((a, b) => (a === editada ? -0.5 : 0) + (a.de - b.de) || a.ate - b.ate);
+  const limpas = [];
+  for (const f of atual.sort((a, b) => a.de - b.de || (a === editada ? -1 : 1))) {
+    const ant = limpas[limpas.length - 1];
+    if (ant && f.ate <= ant.ate) continue;
+    if (ant && f.de <= ant.ate) { f.de = inteiros ? ant.ate + 1 : ant.ate; f.deExcl = !inteiros; }
+    limpas.push(f);
+  }
+  E.faixas = limpas; E.metodo = 'manual'; E.legEdit = {};
+  AVISO_FAIXAS = 'Você escreveu um intervalo na legenda, então ajustei os limites das faixas para ele (agora em “Montar eu mesmo”). Confira De e Até abaixo.';
+  salvarEstado(); atualizarControles(); desenhar();
+  return true;
+}
 function editarLegenda(ev, campo) {
   const k = ev.target.dataset.chave; if (!k) return;
+  if (campo === 'rotulo' && k.startsWith('num:') && converterParaFaixas(k, ev.target.value)) return;
   const ed = Object.assign({}, E.legEdit[k]);
   const v = ev.target.value.trim();
   if (v) ed[campo] = v; else delete ed[campo];
@@ -873,6 +903,8 @@ function aplicarTexto(manterNivel) {
   DADOS = { colunas: r.colunas, linhas: r.linhas };
   if (E.indicador >= r.colunas.length) E.indicador = 0;
   AVISO_FAIXAS = conferirFaixasComDados();
+  const vs = [...r.linhas.values()].map(v => String(v[E.indicador] ?? '').trim()).filter(Boolean);
+  if (!E.unidade && vs.length && vs.every(v => /%$/.test(v))) E.unidade = '%';
   let h = `<b>${r.linhas.size}</b> ${r.linhas.size === 1 ? 'área reconhecida' : 'áreas reconhecidas'} como <b>${esc(nivelPorId[r.nivel].nome.toLowerCase())}</b>`;
   if (r.colunas.length > 1) h += ` · ${r.colunas.length} indicadores`;
   const equipSemTerr = [], outros = [];
