@@ -32,7 +32,9 @@ A ferramenta:
 - recebe dados **por bairro** e mostra **por CRAS, zona ou região**, somando, tirando a média, o maior ou o menor valor;
 - aceita várias colunas de indicadores de uma vez, e você escolhe qual mostrar;
 - tem indicadores prontos, como área (km²) e número de CRAS, UBS ou escolas por bairro.
-- deixa **você montar as faixas da legenda**: em "Faixas por", escolha **Montar eu mesmo**. Cada linha da tabelinha é uma faixa ("até 1.900", "até 3.000", "acima de 3.000"), com nome e cor escolhidos por você, e o botão **+ adicionar faixa** cria mais. Um território com 2.500 cai na faixa "1.901 a 3.000". Também dá para usar quebras naturais, quantis ou intervalos iguais;
+- deixa **você montar as faixas da legenda**: em "Faixas por", escolha **Montar eu mesmo (De – Até)** e digite, por exemplo, `21-36; 37-45`. Também aceita `até 20` e `acima de 45`. Cada faixa pode ter nome e cor próprios. Áreas cujo valor não cai em nenhuma faixa ficam cinza, com aviso. Se as faixas salvas forem de outro mapa e não servirem para os dados novos, a ferramenta refaz as faixas e avisa;
+- tem **Mapa 3D**: cada área vira uma coluna, e a altura mostra o valor, então as áreas com mais valores sobressaem. Dá para girar, inclinar, ajustar a altura e "realçar diferenças". O PNG baixado sai em 3D;
+- mostra um **gráfico de barras** (ranking do maior para o menor) abaixo do mapa, que também pode ser baixado em PNG;
 - permite **trocar a cor e o texto de cada faixa** direto na legenda, por exemplo renomear "1" para "Alta vulnerabilidade". Há ainda uma paleta personalizada (você escolhe as duas cores das pontas), unidade (%, famílias…), casas decimais, título da legenda, subtítulo, tamanho dos nomes, estilo das áreas sem dado e opção de esconder a escala e a seta do norte.
 
 ## Territórios: atenção

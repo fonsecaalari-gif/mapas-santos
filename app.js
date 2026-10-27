@@ -183,13 +183,19 @@ const PADRAO = {
   rotulos: 'dados', vista: 'composto', mostrarValores: false, divisas: true, equip: ['CRAS'],
   cortesManuais: '', corIni: '#fff3c4', corFim: '#99000d', legEdit: {}, legTitulo: '', legContagem: true,
   legSemDado: true, semDadoTexto: '', corSemDado: 'hachura', unidade: '', casas: 'auto', subtitulo: '',
-  tamRotulo: 100, escalaNorte: true, faixas: [], faixaAcima: { rotulo: '', cor: '' },
+  tamRotulo: 100, escalaNorte: true, faixas: [], modo: '2d', exagero: 1, realcar: true,
 };
 let E = Object.assign({}, PADRAO, lsGet(CHAVE_ESTADO) || {});
 if (!E.legEdit || typeof E.legEdit !== 'object') E.legEdit = {};
 if (!Array.isArray(E.faixas)) E.faixas = [];
-if (!E.faixaAcima) E.faixaAcima = { rotulo: '', cor: '' };
 if (!E.faixas.length && E.cortesManuais) E.faixas = lerCortes(E.cortesManuais).map(ate => ({ ate, rotulo: '', cor: '' }));   // versão anterior
+// versão anterior guardava só "até"; converte para faixas com De e Até
+if (E.faixas.length && E.faixas.every(f => f.de === undefined)) {
+  const ord = E.faixas.filter(f => Number.isFinite(f.ate)).sort((a, b) => a.ate - b.ate);
+  E.faixas = ord.map((f, i) => ({ de: i ? ord[i - 1].ate : null, deExcl: i > 0, ate: f.ate, rotulo: f.rotulo || '', cor: f.cor || '' }));
+  if (ord.length) E.faixas.push({ de: ord[ord.length - 1].ate, deExcl: true, ate: null, rotulo: (E.faixaAcima || {}).rotulo || '', cor: (E.faixaAcima || {}).cor || '' });
+}
+delete E.faixaAcima;
 let DADOS = { colunas: [], linhas: new Map() };   // linhas: área (nível dos dados) -> [valores brutos]
 const salvarEstado = () => lsSet(CHAVE_ESTADO, E);
 
@@ -283,7 +289,7 @@ function classificar(valores) {
   const distintos = [...new Set(lista.map(x => todosNum ? parseNum(x) : x))];
   let tipo = E.tipo;
   if (tipo === 'auto') tipo = !todosNum || (nums.every(Number.isInteger) && distintos.length <= 7 && d3.max(nums) <= 10 && d3.min(nums) >= 0) ? 'cat' : 'num';
-  if (E.tipo === 'auto' && E.metodo === 'manual' && todosNum && faixasOrdenadas().length) tipo = 'num';
+  if (E.tipo === 'auto' && E.metodo === 'manual' && todosNum && faixasValidas().length) tipo = 'num';
   if (tipo === 'num' && !todosNum) tipo = 'cat';
   const pal = E.paleta;
 
@@ -313,9 +319,10 @@ function classificar(valores) {
   const casas = E.casas === 'auto' ? casasDecimais(vals) : +E.casas;
   const fn = v => fmtNum(v, casas);
   const fv = v => comUnidade(fn(v));
-  const fxs = E.metodo === 'manual' ? faixasOrdenadas() : [];
-  let cortes = fxs.map(f => f.ate);
-  const manual = cortes.length > 0;
+  if (E.metodo === 'manual' && faixasValidas().length) return classificarFaixasMontadas(vals, fn, pal);
+  const fxs = [];
+  let cortes = [];
+  const manual = false;
   if (!manual) {
     const k = Math.min(+E.classes, new Set(vals).size);
     const unicos = [...new Set(vals)];
@@ -348,8 +355,52 @@ function classificar(valores) {
   itens.forEach(it => { corFinal[it.i] = it.cor; });
   return { tipo, todosNum: true, manual, cortes, corDe: x => corFinal[faixa(parseNum(x))], legenda: itens, fmt: x => fv(parseNum(x)) };
 }
-function faixasOrdenadas() {
-  return E.faixas.filter(f => f && Number.isFinite(f.ate)).sort((a, b) => a.ate - b.ate);
+// ---- faixas montadas pela usuária: cada uma com De e Até (qualquer um pode ficar vazio)
+const COR_FORA = '#c4c8c1';
+const fin = v => v != null && Number.isFinite(v);
+function faixasValidas() {
+  return E.faixas.filter(f => f && (fin(f.de) || fin(f.ate)))
+    .sort((a, b) => (fin(a.de) ? a.de : -Infinity) - (fin(b.de) ? b.de : -Infinity) || (fin(a.ate) ? a.ate : Infinity) - (fin(b.ate) ? b.ate : Infinity));
+}
+function dentroDaFaixa(f, v) {
+  const okDe = !fin(f.de) || (f.deExcl ? v > f.de : v >= f.de);
+  const okAte = !fin(f.ate) || v <= f.ate;
+  return okDe && okAte;
+}
+function rotuloFaixa(f, fn) {
+  if (fin(f.de) && fin(f.ate) && f.de === f.ate && !f.deExcl) return comUnidade(fn(f.de));
+  if (fin(f.de) && fin(f.ate)) return comUnidade(f.deExcl ? `Acima de ${fn(f.de)} até ${fn(f.ate)}` : `${fn(f.de)} a ${fn(f.ate)}`);
+  if (fin(f.ate)) return comUnidade(`Até ${fn(f.ate)}`);
+  return comUnidade(f.deExcl ? `Acima de ${fn(f.de)}` : `${fn(f.de)} ou mais`);
+}
+function classificarFaixasMontadas(vals, fn, pal) {
+  const fxs = faixasValidas();
+  const cores = coresDe(pal, fxs.length, false);
+  const qual = v => fxs.findIndex(f => dentroDaFaixa(f, v));
+  const n = fxs.map(() => 0); let fora = 0;
+  vals.forEach(v => { const i = qual(v); if (i < 0) fora++; else n[i]++; });
+  const itens = fxs.map((f, i) => {
+    const r = rotuloFaixa(f, fn);
+    return { chave: 'faixa:' + i, i, corPadrao: cores[i], rotuloPadrao: r, n: n[i], cor: f.cor || cores[i], rotulo: f.rotulo || r, editado: !!(f.cor || f.rotulo) };
+  });
+  if (fora) itens.push({ chave: 'fora', i: -1, cor: COR_FORA, rotulo: 'Fora das faixas', rotuloPadrao: 'Fora das faixas', n: fora, fora: true });
+  return { tipo: 'num', todosNum: true, manual: true, fora, min: vals[0], max: vals[vals.length - 1],
+    corDe: x => { const i = qual(parseNum(x)); return i < 0 ? COR_FORA : itens[i].cor; }, legenda: itens, fmt: x => comUnidade(fn(parseNum(x))) };
+}
+// "21-36; 37-45", "até 20", "acima de 45", "46 ou mais"
+function lerFaixasTexto(txt) {
+  const out = [];
+  for (let parte of String(txt).split(/[;\n|]/)) {
+    parte = parte.trim().toLowerCase(); if (!parte) continue;
+    const num = '(-?[\\d.,]+)\\s*%?';
+    let m;
+    if ((m = parte.match(new RegExp('^(?:de\\s+)?' + num + '\\s*(?:-|–|a|até|ate)\\s*' + num + '$')))) out.push({ de: parseNum(m[1]), ate: parseNum(m[2]) });
+    else if ((m = parte.match(new RegExp('^(?:até|ate|<=|menos de)\\s*' + num + '$')))) out.push({ de: null, ate: parseNum(m[1]) });
+    else if ((m = parte.match(new RegExp('^(?:acima de|mais de|>)\\s*' + num + '$')))) out.push({ de: parseNum(m[1]), deExcl: true, ate: null });
+    else if ((m = parte.match(new RegExp('^' + num + '\\s*(?:ou mais|\\+|em diante)$')))) out.push({ de: parseNum(m[1]), ate: null });
+    else return { erro: parte };
+  }
+  return { faixas: out.filter(f => fin(f.de) || fin(f.ate)).map(f => ({ de: f.de, deExcl: !!f.deExcl, ate: f.ate, rotulo: '', cor: '' })) };
 }
 function aplicarEdicaoLegenda(itens) {
   for (const it of itens) {
@@ -469,7 +520,8 @@ function desenhar() {
   const valorDe = area => valores.get(area);
   const corArea = area => { const o = valorDe(area); return o ? cls.corDe(o.v) : (temDados ? corSemDado() : COR_VAZIO); };
 
-  for (const p of partes) {
+  const modo3d = E.modo === '3d';
+  for (const p of (modo3d ? [] : partes)) {
     let g;
     if (p.principal) g = gZoom.append('g');
     else {
@@ -533,12 +585,17 @@ function desenhar() {
     }
   }
 
-  if (E.escalaNorte) norte();
+  if (E.escalaNorte && !modo3d) norte();
 
   // legendas (coluna direita)
-  let y = E.vista === 'composto' ? INSET.y + INSET.h + 26 : COL.y + 6;
+  let y = E.vista === 'composto' && !modo3d ? INSET.y + INSET.h + 26 : COL.y + 6;
   if (temDados) y = legendaValores(cls, coluna, y);
-  legendaEquip(y + 8);
+  if (modo3d && temDados) {
+    const nota = quebrarNome(E.realcar ? 'Altura das colunas: do menor valor (mais baixa) ao maior (mais alta)' : 'Altura das colunas: proporcional ao valor', 40);
+    nota.forEach((l, i) => svg.append('text').attr('x', COL.x).attr('y', y + 18 + i * 16).attr('font-size', 12.5).attr('fill', '#5b6870').text(l));
+    y += 26 + (nota.length - 1) * 16;
+  }
+  if (!modo3d) legendaEquip(y + 8);
 
   // rodapé
   const fonte = E.fonte ? 'Fonte dos dados: ' + E.fonte : '';
@@ -546,8 +603,11 @@ function desenhar() {
   svg.append('text').attr('x', W - 24).attr('y', H - 22).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', '#8a959b')
     .text('Base cartográfica: Prefeitura de Santos (GeoServer) · territórios CRAS/CREAS/saúde: aproximação editável');
 
-  configurarZoom(partes, VISTA_ANTERIOR === E.vista);
-  VISTA_ANTERIOR = E.vista;
+  if (!modo3d) { configurarZoom(partes, VISTA_ANTERIOR === E.vista); VISTA_ANTERIOR = E.vista; }
+  else VISTA_ANTERIOR = null;
+  document.body.classList.toggle('modo3d', modo3d);
+  if (modo3d) desenhar3D(cls, valores, nm); else $('#mapa3d').hidden = true;
+  desenharGrafico(cls, valores, nm, coluna, tit);
   atualizarEditor();
   montarEditorLegenda(cls);
   montarTabelaFaixas(cls);
@@ -812,12 +872,20 @@ function aplicarTexto(manterNivel) {
   if (!manterNivel && DADOS.colunas.length && r.colunas.join('|') !== DADOS.colunas.join('|')) limparPersonalizacao();
   DADOS = { colunas: r.colunas, linhas: r.linhas };
   if (E.indicador >= r.colunas.length) E.indicador = 0;
+  AVISO_FAIXAS = conferirFaixasComDados();
   let h = `<b>${r.linhas.size}</b> ${r.linhas.size === 1 ? 'área reconhecida' : 'áreas reconhecidas'} como <b>${esc(nivelPorId[r.nivel].nome.toLowerCase())}</b>`;
   if (r.colunas.length > 1) h += ` · ${r.colunas.length} indicadores`;
+  const equipSemTerr = [], outros = [];
+  for (const n of r.naoReconhecidos) {
+    const e = BASE.equipamentos.find(q => chave(q.nome) === chave(n) || semPrefixo(chave(q.nome)) === semPrefixo(chave(n)));
+    (e && ['CRAS', 'CREAS'].includes(e.tipo) ? equipSemTerr : outros).push(e ? e.nome : n);
+  }
+  if (equipSemTerr.length) h += `<br><b>${esc(equipSemTerr.join(', '))}</b>: não ${equipSemTerr.length > 1 ? 'têm' : 'tem'} nenhum bairro ligado no território, por isso não aparece no mapa. Ligue os bairros na aba <b>Territórios</b>.`;
+  r.naoReconhecidos = outros;
   if (r.naoReconhecidos.length) h += `<br>Não reconheci (confira a grafia ou mude “Os dados estão por”):<ul>${r.naoReconhecidos.slice(0, 12).map(n => `<li>${esc(n)}</li>`).join('')}${r.naoReconhecidos.length > 12 ? `<li>… e mais ${r.naoReconhecidos.length - 12}</li>` : ''}</ul>`;
   if (r.repetidos.length) h += `<br>Repetidos (vale a última linha): ${esc([...new Set(r.repetidos)].join(', '))}`;
   rel.innerHTML = h; rel.hidden = false;
-  rel.classList.toggle('alerta', r.naoReconhecidos.length > 0 || r.linhas.size === 0);
+  rel.classList.toggle('alerta', r.naoReconhecidos.length > 0 || equipSemTerr.length > 0 || r.linhas.size === 0);
   salvarEstado(); atualizarControles(); desenhar();
 }
 
@@ -860,6 +928,11 @@ function exportarPNG() {
     const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0, c.width, c.height);
     URL.revokeObjectURL(url);
+    if (E.modo === '3d' && DECK) {
+      DECK.redraw('exportar');
+      const cv = $('#mapa3d canvas');
+      if (cv) ctx.drawImage(cv, AREA.x * escala, AREA.y * escala, AREA.w * escala, AREA.h * escala);
+    }
     c.toBlob(b => baixar(nomeArquivo('png'), b), 'image/png');
   };
   img.src = url;
@@ -976,77 +1049,123 @@ liga('#subtitulo', 'subtitulo', v => v, 'input'); liga('#tam-rotulo', 'tamRotulo
 // "Montar eu mesmo": começa com faixas sugeridas a partir dos dados, se ainda não houver nenhuma
 $('#metodo').addEventListener('change', ev => {
   E.metodo = ev.target.value;
-  if (E.metodo === 'manual' && !faixasOrdenadas().length) sugerirFaixas();
+  if (E.metodo === 'manual' && !faixasValidas().length) sugerirFaixas();
   salvarEstado(); atualizarControles(); desenhar();
 });
 function arredondar(c) {
   const m = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(c) || 1)) - 1));
   return Math.round(c / m) * m;
 }
-function sugerirFaixas() {
-  const { valores } = calcular();
-  const vals = [...valores.values()].map(o => parseNum(o.v)).filter(v => v != null).sort((a, b) => a - b);
-  if (vals.length < 2) { E.faixas = [{ ate: 1000, rotulo: '', cor: '' }, { ate: 2000, rotulo: '', cor: '' }]; return; }
-  const k = Math.min(4, new Set(vals).size);
-  const cs = [...new Set(quebras(vals, k, 'jenks').map(arredondar))].filter(c => c >= vals[0] && c < vals[vals.length - 1]);
-  E.faixas = (cs.length ? cs : [arredondar(d3.median(vals))]).map(ate => ({ ate, rotulo: '', cor: '' }));
+function valoresAtuais() {
+  return [...calcular().valores.values()].map(o => parseNum(o.v)).filter(v => v != null).sort((a, b) => a - b);
 }
+function sugerirFaixas() {
+  const vals = valoresAtuais();
+  if (vals.length < 2) { E.faixas = [{ de: null, ate: 1000, rotulo: '', cor: '' }, { de: 1000, deExcl: true, ate: null, rotulo: '', cor: '' }]; return; }
+  const inteiros = vals.every(Number.isInteger);
+  const k = Math.min(4, new Set(vals).size);
+  let cs = [...new Set(quebras(vals, k, 'jenks').map(c => inteiros ? Math.round(arredondar(c)) : arredondar(c)))].filter(c => c > vals[0] && c < vals[vals.length - 1]).sort((a, b) => a - b);
+  if (!cs.length) cs = [inteiros ? Math.round(d3.median(vals)) : arredondar(d3.median(vals))];
+  const lim = [vals[0], ...cs, vals[vals.length - 1]];
+  E.faixas = [];
+  for (let i = 0; i < lim.length - 1; i++) {
+    E.faixas.push(inteiros ? { de: i ? lim[i] + 1 : lim[0], ate: lim[i + 1], rotulo: '', cor: '' }
+                           : { de: lim[i], deExcl: i > 0, ate: lim[i + 1], rotulo: '', cor: '' });
+  }
+}
+// ao trocar de dados: se nenhum valor cabe nas faixas salvas, elas eram de outro mapa: refaz
+function conferirFaixasComDados() {
+  if (E.metodo !== 'manual' || !faixasValidas().length) return '';
+  const vals = valoresAtuais(); if (!vals.length) return '';
+  const fx = faixasValidas();
+  const usadas = new Set(vals.map(v => fx.findIndex(f => dentroDaFaixa(f, v))).filter(i => i >= 0));
+  const distintos = new Set(vals).size;
+  // faixas de outro mapa: nenhum valor cabe nelas, ou todos caem numa faixa só
+  if (usadas.size > 1 || (usadas.size === 1 && (fx.length < 2 || distintos < 3))) return '';
+  sugerirFaixas();
+  return `As faixas salvas eram de outro mapa e não serviam para estes valores (todos caíam numa faixa só). Montei faixas novas para os valores de ${fmtNum(vals[0])} a ${fmtNum(vals[vals.length - 1])}; ajuste à vontade.`;
+}
+let AVISO_FAIXAS = '';
 // tabela de faixas
 function montarTabelaFaixas(cls) {
   const box = $('#tabela-faixas');
   if (!box || $('#campo-cortes').hidden) return;
   const foco = document.activeElement;
   if (box.contains(foco) && foco.type === 'text') return;   // não atrapalha quem está digitando
-  const fxs = faixasOrdenadas();
-  E.faixas = fxs;
+  E.faixas = faixasValidas();
   const leg = cls && cls.manual ? cls.legenda : [];
-  const cores = coresDe(E.paleta, fxs.length + 1, false);
+  const cores = coresDe(E.paleta, Math.max(1, E.faixas.length), false);
   const casas = E.casas === 'auto' ? 2 : +E.casas;
-  const linha = (f, i, ultima) => {
-    const it = leg[i] || {};
-    const cor = f.cor || cores[i] || '#cccccc';
-    return `<div class="fx">
-      <input type="text" data-i="${i}" data-campo="rotulo" value="${esc(f.rotulo || '')}" placeholder="${esc(it.rotuloPadrao || ('Faixa ' + (i + 1)))}" title="Nome desta faixa na legenda (opcional)">
-      ${ultima ? `<span class="acima">acima de ${fxs.length ? fmtNum(fxs[fxs.length - 1].ate, casas) : '—'}</span>`
-               : `<span class="ate">até <input type="text" inputmode="decimal" data-i="${i}" data-campo="ate" value="${esc(fmtNum(f.ate, casas))}" title="Valor máximo desta faixa"></span>`}
-      <input type="color" data-i="${ultima ? 'acima' : i}" data-campo="cor" value="${esc(d3.color(cor).formatHex())}" title="Cor desta faixa">
-      <span class="n-area" title="Áreas nesta faixa">${it.n ?? ''}</span>
-      ${ultima ? '<span></span>' : `<button class="del" data-del="${i}" title="Remover esta faixa">×</button>`}
-    </div>`;
-  };
-  box.innerHTML = '<div class="cab"><span>Nome na legenda</span><span>Limite</span><span>Cor</span><span>n</span><span></span></div>' +
-    fxs.map((f, i) => linha(f, i, false)).join('') + linha(E.faixaAcima, fxs.length, true);
+  const nf = v => fin(v) ? fmtNum(v, casas) : '';
+  box.innerHTML = '<div class="cab"><span>De</span><span>Até</span><span>Nome na legenda</span><span>Cor</span><span>n</span><span></span></div>' +
+    E.faixas.map((f, i) => {
+      const it = leg[i] || {};
+      const cor = f.cor || cores[i] || '#cccccc';
+      return `<div class="fx">
+        <input type="text" inputmode="decimal" data-i="${i}" data-campo="de" value="${esc(nf(f.de))}" placeholder="mín." title="${f.deExcl ? 'Acima deste valor' : 'A partir deste valor (inclusive)'}">
+        <input type="text" inputmode="decimal" data-i="${i}" data-campo="ate" value="${esc(nf(f.ate))}" placeholder="máx." title="Até este valor (inclusive)">
+        <input type="text" data-i="${i}" data-campo="rotulo" value="${esc(f.rotulo || '')}" placeholder="${esc(it.rotuloPadrao || ('Faixa ' + (i + 1)))}" title="Nome desta faixa na legenda (opcional)">
+        <input type="color" data-i="${i}" data-campo="cor" value="${esc(d3.color(cor).formatHex())}" title="Cor desta faixa">
+        <span class="n-area" title="Áreas nesta faixa">${it.n ?? ''}</span>
+        <button class="del" data-del="${i}" title="Remover esta faixa">×</button>
+      </div>`;
+    }).join('');
+  const av = $('#aviso-faixas');
+  let txt = AVISO_FAIXAS;
+  if (!txt && cls && cls.manual && cls.fora) txt = `${cls.fora} ${cls.fora === 1 ? 'área ficou' : 'áreas ficaram'} fora das faixas (seus valores vão de ${fmtNum(cls.min)} a ${fmtNum(cls.max)}). Elas aparecem em cinza; ajuste De/Até ou clique em “Sugerir faixas”.`;
+  av.textContent = txt; av.hidden = !txt;
 }
-function alvoFaixa(i) { return i === 'acima' || +i === E.faixas.length ? E.faixaAcima : E.faixas[+i]; }
 $('#tabela-faixas').addEventListener('input', ev => {
   const t = ev.target; if (t.dataset.campo !== 'cor') return;
-  alvoFaixa(t.dataset.i).cor = t.value; salvarEstado(); desenhar();
+  E.faixas[+t.dataset.i].cor = t.value; salvarEstado(); desenhar();
 });
 $('#tabela-faixas').addEventListener('change', ev => {
   const t = ev.target, c = t.dataset.campo; if (!c || c === 'cor') return;
-  if (c === 'rotulo') alvoFaixa(t.dataset.i).rotulo = t.value.trim();
-  if (c === 'ate') {
-    const v = parseNum(t.value);
-    if (v == null) { t.value = fmtNum(E.faixas[+t.dataset.i].ate); return; }
-    E.faixas[+t.dataset.i].ate = v;
-    E.faixas = faixasOrdenadas();
+  const f = E.faixas[+t.dataset.i];
+  if (c === 'rotulo') f.rotulo = t.value.trim();
+  else {
+    const txt = t.value.trim();
+    // aceita "21-36" ou "21 a 36" digitado num campo só
+    const r = /\d\s*(-|–|\ba\b|até)\s*\d/.test(txt) ? lerFaixasTexto(txt) : null;
+    if (r && r.faixas && r.faixas.length === 1) { Object.assign(f, { de: r.faixas[0].de, ate: r.faixas[0].ate, deExcl: false }); }
+    else {
+      const v = txt === '' ? null : parseNum(txt);
+      if (txt !== '' && v == null) { t.value = fin(f[c]) ? fmtNum(f[c]) : ''; return; }
+      f[c] = v; if (c === 'de') f.deExcl = false;
+    }
   }
+  AVISO_FAIXAS = '';
   salvarEstado(); t.blur(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
 });
 $('#tabela-faixas').addEventListener('click', ev => {
   const d = ev.target.dataset.del; if (d == null) return;
-  E.faixas.splice(+d, 1); salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
+  E.faixas.splice(+d, 1); AVISO_FAIXAS = ''; salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
 });
 $('#btn-faixa-add').addEventListener('click', () => {
-  const fxs = faixasOrdenadas();
-  const ult = fxs.length ? fxs[fxs.length - 1].ate : 0;
-  const passo = fxs.length > 1 ? ult - fxs[fxs.length - 2].ate : (ult || 1000);
-  E.faixas = fxs.concat([{ ate: arredondar(ult + passo), rotulo: '', cor: '' }]);
+  const fxs = faixasValidas();
+  const vals = valoresAtuais();
+  const inteiros = !vals.length || vals.every(Number.isInteger);
+  const ult = fxs[fxs.length - 1];
+  const larg0 = Math.max(1, arredondar(((vals[vals.length - 1] ?? 100) - (vals[0] ?? 0)) / 3));
+  if (ult && !fin(ult.ate)) ult.ate = (fin(ult.de) ? ult.de : 0) + larg0;   // fecha a faixa "acima de" antes de criar a próxima
+  const fimAnt = ult ? (fin(ult.ate) ? ult.ate : ult.de) : (vals[0] ?? 0);
+  const larg = ult && fin(ult.de) && fin(ult.ate) ? ult.ate - ult.de : Math.max(1, arredondar(((vals[vals.length - 1] ?? 100) - (vals[0] ?? 0)) / 3));
+  const de = ult ? (inteiros ? fimAnt + 1 : fimAnt) : fimAnt;
+  E.faixas = fxs.concat([{ de, deExcl: !inteiros && !!ult, ate: de + larg, rotulo: '', cor: '' }]);
+  AVISO_FAIXAS = '';
   salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
   const ins = $('#tabela-faixas').querySelectorAll('input[data-campo="ate"]'); if (ins.length) { ins[ins.length - 1].focus(); ins[ins.length - 1].select(); }
 });
 $('#btn-faixa-auto').addEventListener('click', () => {
-  sugerirFaixas(); E.faixaAcima = { rotulo: '', cor: '' }; salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
+  sugerirFaixas(); AVISO_FAIXAS = ''; salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
+});
+$('#faixas-texto').addEventListener('change', ev => {
+  const r = lerFaixasTexto(ev.target.value);
+  const msg = $('#faixas-texto-msg');
+  if (r.erro) { msg.textContent = `Não entendi “${r.erro}”. Use, por exemplo: 21-36; 37-45`; msg.hidden = false; return; }
+  if (!r.faixas.length) return;
+  msg.hidden = true; E.faixas = r.faixas; AVISO_FAIXAS = ''; ev.target.value = '';
+  salvarEstado(); desenhar(); montarTabelaFaixas(ULTIMO && ULTIMO.cls);
 });
 liga('#inverter', 'inverter'); liga('#rotulos', 'rotulos'); liga('#vista', 'vista'); liga('#mostrar-valores', 'mostrarValores'); liga('#divisas-bairro', 'divisas');
 $('#btn-modelo').addEventListener('click', baixarModelo);
@@ -1059,8 +1178,176 @@ $('#zoom-menos').addEventListener('click', () => svg.transition().duration(250).
 $('#zoom-reset').addEventListener('click', () => svg.transition().duration(250).call(zoom.transform, d3.zoomIdentity));
 $('#meta-fonte').textContent = 'Base: ' + BASE.meta.fonte + '.';
 
+
+// ------------------------------------------------------------------ mapa 3D (deck.gl, carregado só quando usado)
+let DECK = null, carregandoDeck = null, CHAVE_VISTA3D = '', VISTA3D_INICIAL = null;
+function carregarDeck() {
+  if (window.deck) return Promise.resolve();
+  if (!carregandoDeck) carregandoDeck = new Promise((ok, erro) => {
+    const sc = document.createElement('script'); sc.src = 'lib/deck.gl-9.1.14.min.js';
+    sc.onload = ok; sc.onerror = () => { carregandoDeck = null; erro(new Error('falha ao carregar')); };
+    document.head.appendChild(sc);
+  });
+  return carregandoDeck;
+}
+const rgb = c => { const x = d3.color(c) || d3.color('#cccccc'); return [x.r, x.g, x.b]; };
+function geometrias3D(nm) {
+  const filtro = E.vista === 'continente' ? g => CONTINENTAL(nomeGeom(g)) : E.vista === 'completo' ? () => true : g => !CONTINENTAL(nomeGeom(g));
+  const gs = GEOMS.filter(filtro);
+  return [...d3.group(gs, g => grupoDe(nomeGeom(g), nm))].map(([area, lista]) => ({ area, gs: lista,
+    feat: nm === 'bairro' ? topojson.feature(TOPO, lista[0]) : { type: 'Feature', properties: {}, geometry: topojson.merge(TOPO, lista) } }));
+}
+function pontoRotuloGeo(f, nm) {
+  const lp = gm => gm.properties && gm.properties.lx != null ? [gm.properties.lx, gm.properties.ly] : d3.geoCentroid(topojson.feature(TOPO, gm));
+  if (nm === 'bairro') return lp(f.gs[0]);
+  const big = maiorPoligono(f.feat.geometry || f.feat);
+  const c = d3.geoCentroid(big);
+  if (d3.geoContains(big, c)) return c;
+  return lp(d3.greatest(f.gs, gm => d3.geoArea(topojson.feature(TOPO, gm))));
+}
+function desenhar3D(cls, valores, nm) {
+  const box = $('#mapa3d'); box.hidden = false;
+  carregarDeck().then(() => montar3D(cls, valores, nm))
+    .catch(() => { box.innerHTML = '<p class="erro3d">Não consegui abrir o mapa 3D neste navegador. Tente atualizar a página ou usar o Chrome.</p>'; });
+}
+function montar3D(cls, valores, nm) {
+  const box = $('#mapa3d');
+  const formas = geometrias3D(nm);
+  const temDados = valores.size > 0;
+  // altura: proporcional ao valor (texto/categorias usam a posição na legenda)
+  const num = o => parseNum(o.v);
+  const todosNum = cls && cls.todosNum;
+  const pos = new Map(cls && !todosNum ? cls.legenda.map((it, i) => [String(it.rotuloPadrao), i + 1]) : []);
+  const medida = o => todosNum ? num(o) : (pos.get(String(o.v)) || 1);
+  const meds = [...valores.values()].map(o => medida(o)).filter(v => v != null);
+  const maxV = d3.max(meds, v => Math.abs(v)) || 1, minV = d3.min(meds) ?? 0;
+  const ALT = 2200 * (E.exagero || 1);
+  // "realçar": o menor valor fica baixo e o maior bem alto (diferenças aparecem mais)
+  const altura = m => E.realcar && maxV > minV ? (0.12 + 0.88 * (m - minV) / (maxV - minV)) * ALT : Math.abs(m) / maxV * ALT;
+  const dados = formas.map(f => {
+    const o = valores.get(f.area);
+    const m = o ? medida(o) : null;
+    const elev = o && m != null ? Math.max(40, altura(m)) : 0;
+    const cor = o ? rgb(cls.corDe(o.v)) : (temDados ? [214, 217, 211] : [227, 229, 224]);
+    return { ...f.feat, properties: { area: f.area, elev, cor, texto: o ? cls.fmt(o.v) : '' } , _f: f };
+  });
+  const contornos = [];
+  for (const d of dados) {
+    const g = d.geometry; if (!g) continue;
+    const polys = g.type === 'MultiPolygon' ? g.coordinates : g.type === 'Polygon' ? [g.coordinates] : [];
+    for (const pl of polys) for (const anel of pl) contornos.push({ path: anel.map(([x, y]) => [x, y, d.properties.elev + 3]) });
+  }
+  const rot = dados.filter(d => E.rotulos === 'todos' || (E.rotulos !== 'nenhum' && d.properties.texto));
+  const textos = rot.map(d => {
+    const [lon, lat] = pontoRotuloGeo(d._f, nm);
+    const linhas = quebrarNome(nomeCurto(d.properties.area, nm), nm === 'bairro' ? 14 : 18);
+    if (E.mostrarValores && d.properties.texto) linhas.push(d.properties.texto);
+    return { pos: [lon, lat, d.properties.elev + 60], texto: linhas.join('\n') };
+  });
+  const tam = (nm === 'bairro' ? 11 : 13) * (E.tamRotulo || 100) / 100;
+  const continente = E.vista !== 'ilha' && E.vista !== 'composto';
+  const camadas = [
+    continente && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
+    new deck.GeoJsonLayer({
+      id: 'areas', data: dados, extruded: true, wireframe: false, pickable: true, autoHighlight: true, highlightColor: [255, 255, 255, 70],
+      getElevation: d => d.properties.elev, getFillColor: d => d.properties.cor,
+      material: { ambient: 0.55, diffuse: 0.55, shininess: 20, specularColor: [40, 40, 40] },
+      updateTriggers: { getElevation: [Math.random()], getFillColor: [Math.random()] },
+      transitions: { getElevation: 600 },
+    }),
+    // contorno branco no topo de cada coluna (separa áreas vizinhas)
+    new deck.PathLayer({ id: 'contornos', data: contornos, getPath: d => d.path, getColor: [255, 255, 255, 230], getWidth: 1.4, widthUnits: 'pixels', updateTriggers: { getPath: [Math.random()] } }),
+    textos.length && new deck.TextLayer({
+      id: 'nomes', data: textos, getPosition: d => d.pos, getText: d => d.texto, getSize: tam, sizeUnits: 'pixels',
+      getColor: [31, 42, 48], fontFamily: FONTE_SVG, fontWeight: 700, characterSet: 'auto', lineHeight: 1.15,
+      getTextAnchor: 'middle', getAlignmentBaseline: 'center', fontSettings: { sdf: true, fontSize: 64, buffer: 6 },
+      outlineWidth: 4, outlineColor: [255, 255, 255, 235],
+      parameters: { depthTest: false, depthCompare: 'always' },   // nomes sempre por cima das colunas
+    }),
+  ].filter(Boolean);
+  const chave = [E.vista, nm].join('|');
+  if (!DECK || chave !== CHAVE_VISTA3D || !box.querySelector('canvas')) {
+    const bounds = d3.geoBounds({ type: 'FeatureCollection', features: dados });
+    const w = box.clientWidth || 800, h = box.clientHeight || 700;
+    const vp = new deck.WebMercatorViewport({ width: w, height: h }).fitBounds(bounds, { padding: Math.round(Math.min(w, h) * 0.08) });
+    VISTA3D_INICIAL = { longitude: vp.longitude, latitude: vp.latitude - (bounds[1][1] - bounds[0][1]) * 0.12, zoom: vp.zoom + 0.05, pitch: 50, bearing: -15, maxPitch: 75 };
+    CHAVE_VISTA3D = chave;
+    if (DECK) DECK.setProps({ initialViewState: { ...VISTA3D_INICIAL } });
+  }
+  if (!DECK || !box.querySelector('canvas')) {
+    if (DECK) { try { DECK.finalize(); } catch (e) { /* */ } }
+    box.innerHTML = '';
+    DECK = new deck.Deck({
+      parent: box, initialViewState: { ...VISTA3D_INICIAL }, controller: { dragRotate: true, touchRotate: true },
+      layers: camadas, style: { position: 'absolute', inset: 0 },
+      deviceProps: { webgl: { preserveDrawingBuffer: true } }, glOptions: { preserveDrawingBuffer: true },
+      getTooltip: ({ object }) => object && object.properties && {
+        html: `<b>${esc(object.properties.area)}</b><div>${object.properties.texto ? esc(object.properties.texto) : 'sem dado'}</div>`,
+        style: { background: 'rgba(31,42,48,.95)', color: '#fff', padding: '7px 10px', borderRadius: '6px', fontSize: '12.5px', fontFamily: FONTE_SVG },
+      },
+    });
+  } else DECK.setProps({ layers: camadas });
+}
+function mexerVista3D(f) {
+  if (!DECK) return;
+  const atual = (DECK.viewManager && DECK.viewManager.getViewState && DECK.viewManager.getViewState()) || VISTA3D_INICIAL;
+  DECK.setProps({ initialViewState: { ...atual, ...f(atual), transitionDuration: 500 } });
+}
+$('#girar-esq').addEventListener('click', () => mexerVista3D(v => ({ bearing: (v.bearing || 0) - 30 })));
+$('#girar-dir').addEventListener('click', () => mexerVista3D(v => ({ bearing: (v.bearing || 0) + 30 })));
+$('#inclinar').addEventListener('click', () => mexerVista3D(v => ({ pitch: (v.pitch || 0) > 30 ? 0 : 52 })));
+$('#reset-3d').addEventListener('click', () => DECK && VISTA3D_INICIAL && DECK.setProps({ initialViewState: { ...VISTA3D_INICIAL, transitionDuration: 600 } }));
+$('#realcar').addEventListener('change', ev => { E.realcar = ev.target.checked; salvarEstado(); desenhar(); });
+$('#exagero').addEventListener('input', ev => { E.exagero = +ev.target.value; salvarEstado(); desenhar(); });
+document.querySelectorAll('.seg button').forEach(bt => bt.addEventListener('click', () => {
+  E.modo = bt.dataset.modo; salvarEstado(); atualizarModo(); desenhar();
+}));
+function atualizarModo() {
+  document.querySelectorAll('.seg button').forEach(bt => bt.classList.toggle('ativo', bt.dataset.modo === E.modo));
+  $('#ctrl-3d').hidden = E.modo !== '3d';
+  $('#exagero').value = E.exagero || 1;
+  $('#realcar').checked = !!E.realcar;
+}
+
+// ------------------------------------------------------------------ gráfico de barras (ranking)
+function desenharGrafico(cls, valores, nm, coluna, tit) {
+  const card = $('#grafico-card');
+  const linhas = cls && cls.todosNum ? [...valores].map(([a, o]) => ({ a, v: parseNum(o.v), o })).filter(d => d.v != null).sort((x, y) => y.v - x.v) : [];
+  card.hidden = linhas.length < 2;
+  if (card.hidden) return;
+  const g = d3.select('#grafico'); g.selectAll('*').remove();
+  const Wg = 1000, top = 56, alt = 24, esq = 300, dir = 110;
+  const Hg = top + linhas.length * alt + 34;
+  g.attr('viewBox', `0 0 ${Wg} ${Hg}`).attr('font-family', FONTE_SVG);
+  g.append('rect').attr('width', Wg).attr('height', Hg).attr('fill', '#ffffff');
+  g.append('text').attr('x', 16).attr('y', 28).attr('font-size', 18).attr('font-weight', 700).attr('fill', COR_TINTA).text(tit);
+  g.append('text').attr('x', 16).attr('y', 47).attr('font-size', 12.5).attr('fill', '#5b6870').text((E.legTitulo || coluna || 'Valor') + ' · do maior para o menor');
+  const max = d3.max(linhas, d => d.v), min = Math.min(0, d3.min(linhas, d => d.v));
+  const x = d3.scaleLinear().domain([min, max]).range([esq, Wg - dir]);
+  linhas.forEach((d, i) => {
+    const y = top + i * alt;
+    g.append('text').attr('x', esq - 8).attr('y', y + alt / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12.5).attr('fill', COR_TINTA).text(nomeCurto(d.a, nm));
+    g.append('rect').attr('x', x(Math.min(0, d.v))).attr('y', y + 3).attr('width', Math.max(1, Math.abs(x(d.v) - x(0)))).attr('height', alt - 6)
+      .attr('fill', cls.corDe(d.o.v)).attr('stroke', '#9aa3a8').attr('stroke-width', 0.5).attr('rx', 2);
+    g.append('text').attr('x', x(Math.max(0, d.v)) + 6).attr('y', y + alt / 2 + 4).attr('font-size', 12.5).attr('font-weight', 700).attr('fill', COR_TINTA).text(cls.fmt(d.o.v));
+  });
+  if (E.fonte) g.append('text').attr('x', 16).attr('y', Hg - 10).attr('font-size', 11).attr('fill', '#5b6870').text('Fonte: ' + E.fonte);
+}
+$('#btn-grafico-png').addEventListener('click', () => {
+  const el = $('#grafico'); const vb = el.viewBox.baseVal;
+  const clone = el.cloneNode(true); clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); clone.setAttribute('width', vb.width); clone.setAttribute('height', vb.height);
+  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml;charset=utf-8' }));
+  const img = new Image();
+  img.onload = () => {
+    const k = 2, c = document.createElement('canvas'); c.width = vb.width * k; c.height = vb.height * k;
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url); c.toBlob(b => baixar(nomeArquivo('png').replace('mapa-', 'grafico-'), b), 'image/png');
+  };
+  img.src = url;
+});
+
 // ------------------------------------------------------------------ início
-montarListaEquip(); montarProntos();
+montarListaEquip(); montarProntos(); atualizarModo();
 $('#entrada').value = E.texto || '';
 if (E.texto) {
   const r = interpretar(E.texto, E.nivelDados);

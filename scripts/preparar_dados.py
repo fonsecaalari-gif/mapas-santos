@@ -178,6 +178,9 @@ ubs = por_tipo('UBS / USF')
 for b in bairros:
     cands = [e for e in por_tipo('CRAS') if e['nome'] in cras_reg[b['regiao']]]   # NIAS (extensões) não viram território próprio
     b['cras'] = min(cands, key=lambda e: dist(b, e))['nome']
+    # NIAS são extensões do CRAS e atendem territórios próprios (informado pela equipe, out/2026)
+    if b['regiao'] == 'Área Continental': b['cras'] = 'NIAS Área Continental'
+    if b['nome'] == 'Castelo': b['cras'] = 'NIAS CEU das Artes'
     b['creas'] = 'CREAS ZNO' if b['regiao'] in ('Zona Noroeste', 'Morros') else 'CREAS ZL'
     if b['regiao'] == 'Área Continental':
         b['saude'] = next(e['nome'] for e in ubs if 'Caruara' in e['nome'])

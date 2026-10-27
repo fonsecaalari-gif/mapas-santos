@@ -2,15 +2,15 @@ bairro;regiao;zona;cras;creas;saude;area_km2
 Alemoa;Zona Noroeste;Zona Noroeste;CRAS São Manoel;CREAS ZNO;USF do São Manoel;2,517
 Aparecida;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS da Aparecida;1,521
 Areia Branca;Zona Noroeste;Zona Noroeste;CRAS Bom Retiro;CREAS ZNO;USF da Areia Branca;0,544
-Bagres;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;1,246
-Barnabé;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;2,457
+Bagres;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;1,246
+Barnabé;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;2,457
 Bom Retiro;Zona Noroeste;Zona Noroeste;CRAS Bom Retiro;CREAS ZNO;USF do Bom Retiro;0,788
 Boqueirão;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS do Gonzaga;1,594
-Cabuçú-Caetê;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;3,711
+Cabuçú-Caetê;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;3,711
 Campo Grande;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;UBS da Pompéia / José Menino;1,172
 Caneleira;Zona Noroeste;Zona Noroeste;CRAS Bom Retiro;CREAS ZNO;USF da Vila São Jorge / Santa Maria;0,391
-Caruara;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;1,425
-Castelo;Zona Noroeste;Zona Noroeste;CRAS Rádio Clube;CREAS ZNO;USF do Castelo;0,443
+Caruara;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;1,425
+Castelo;Zona Noroeste;Zona Noroeste;NIAS CEU das Artes;CREAS ZNO;USF do Castelo;0,443
 Centro;Região Central Histórica;Região Central Histórica;CRAS Centro;CREAS ZL;USF do Monte Serrat e Penha;0,78
 Chico de Paula;Zona Noroeste;Zona Noroeste;CRAS Chico de Paula;CREAS ZNO;USF do Bom Retiro;1,576
 Chinês;Região Central Histórica;Região Central Histórica;CRAS Centro;CREAS ZL;USF do Morro Pacheco;0,072
@@ -18,14 +18,14 @@ Embaré;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS da Aparecida;1,534
 Encruzilhada;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;UBS da Conselheiro Nébias;0,921
 Estuário;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;USF do Estuário;0,599
 Gonzaga;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS do Gonzaga;1,184
-Guarapá;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;4,22
+Guarapá;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;4,22
 Ilhéu Alto;Zona Noroeste;Zona Noroeste;CRAS São Manoel;CREAS ZNO;USF do São Manoel;0,198
-Iriri;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;1,205
+Iriri;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;1,205
 Jabaquara;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;USF do Jabaquara;0,697
 José Menino;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS da Pompéia / José Menino;0,494
 Macuco;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;UBS do Embaré;1,726
 Marapé;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;UBS do Campo Grande;1,182
-Monte Cabrão;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;0,889
+Monte Cabrão;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;0,889
 Morro Cachoeira;Morros;Morros;CRAS Nova Cintra;CREAS ZNO;USF da Vila São Jorge / Santa Maria;0,302
 Morro Caneleira;Morros;Morros;CRAS Nova Cintra;CREAS ZNO;USF da Vila Progresso / Santa Maria;0,233
 Morro Chico de Paula;Morros;Morros;CRAS Nova Cintra;CREAS ZNO;USF da Vila Progresso / Santa Maria;0,108
@@ -42,10 +42,10 @@ Morro Saboó;Morros;Morros;CRAS Nova Cintra;CREAS ZNO;USF da Vila Progresso / Sa
 Morro Santa Maria;Morros;Morros;CRAS Nova Cintra;CREAS ZNO;USF da Vila Progresso / Santa Maria;0,423
 Morro Santa Terezinha;Morros;Morros;CRAS Nova Cintra;CREAS ZNO;USF do Morro José Menino;0,332
 Morro São Bento;Morros;Morros;CRAS São Bento;CREAS ZNO;USF do Morro São Bento;0,495
-Nossa Senhora das Neves;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;3,337
+Nossa Senhora das Neves;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;3,337
 Outeirinhos;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;"USF ""Martins Fontes""";0,931
 Paquetá;Região Central Histórica;Região Central Histórica;CRAS Centro;CREAS ZL;UBS do Estuário;0,391
-Piaçaguera;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;0,745
+Piaçaguera;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;0,745
 Piratininga;Zona Noroeste;Zona Noroeste;CRAS São Manoel;CREAS ZNO;USF do Piratininga;0,307
 Pompéia;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS da Pompéia / José Menino;0,451
 Ponta da Praia;Orla e Zona Intermediária;Orla;CRAS ZOI;CREAS ZL;UBS da Ponta da Praia;1,797
@@ -55,13 +55,13 @@ Porto Paquetá;Região Central Histórica;Região Central Histórica;CRAS Centro
 Porto Ponta da Praia;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;UBS da Ponta da Praia;0,351
 Porto Saboó;Zona Noroeste;Zona Noroeste;CRAS Chico de Paula;CREAS ZNO;USF do Valongo;0,854
 Porto Valongo;Região Central Histórica;Região Central Histórica;CRAS Centro;CREAS ZL;USF do Morro Pacheco;0,105
-Quilombo;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;2,248
+Quilombo;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;2,248
 Rádio Clube;Zona Noroeste;Zona Noroeste;CRAS Rádio Clube;CREAS ZNO;UBS do Rádio Clube;0,707
 Saboó;Zona Noroeste;Zona Noroeste;CRAS Chico de Paula;CREAS ZNO;USF da Vila Progresso / Santa Maria;0,664
 Santa Maria;Zona Noroeste;Zona Noroeste;CRAS Bom Retiro;CREAS ZNO;USF da Vila São Jorge / Santa Maria;0,354
 São Jorge;Zona Noroeste;Zona Noroeste;CRAS Bom Retiro;CREAS ZNO;USF da Vila São Jorge / Santa Maria;0,514
 São Manoel;Zona Noroeste;Zona Noroeste;CRAS São Manoel;CREAS ZNO;USF do São Manoel;0,488
-Trindade;Área Continental;Área Continental;CRAS Centro;CREAS ZL;USF de Caruara / Monte Cabrão;5,653
+Trindade;Área Continental;Área Continental;NIAS Área Continental;CREAS ZL;USF de Caruara / Monte Cabrão;5,653
 Valongo;Região Central Histórica;Região Central Histórica;CRAS Centro;CREAS ZL;USF do Morro Pacheco;0,123
 Vila Belmiro;Orla e Zona Intermediária;Zona Intermediária;CRAS ZOI;CREAS ZL;UBS do Campo Grande;0,636
 Vila Gilda;Zona Noroeste;Zona Noroeste;CRAS Rádio Clube;CREAS ZNO;USF da Vila Gilda;0,376

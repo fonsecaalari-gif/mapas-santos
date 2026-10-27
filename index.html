@@ -77,16 +77,20 @@
         <div class="campo"><label for="tipo">Tipo de valor</label>
           <select id="tipo"><option value="auto">Automático</option><option value="cat">Categorias / níveis</option><option value="num">Números (faixas)</option></select></div>
         <div class="campo so-num"><label for="metodo">Faixas por</label>
-          <select id="metodo"><option value="manual">Montar eu mesmo (até X, até Y…)</option><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
+          <select id="metodo"><option value="manual">Montar eu mesmo (De – Até)</option><option value="jenks">Quebras naturais</option><option value="quantil">Quantis</option><option value="igual">Intervalos iguais</option></select></div>
       </div>
       <div class="campo" id="campo-cortes" hidden>
-        <label>Monte as faixas: cada linha vai até o valor que você digitar</label>
+        <label for="faixas-texto">Digite as faixas (De-Até), separadas por ponto e vírgula</label>
+        <input id="faixas-texto" type="text" placeholder="Ex.: 21-36; 37-45   (Enter para aplicar)">
+        <p id="faixas-texto-msg" class="dica mini alerta-txt" hidden></p>
+        <label style="margin-top:8px">ou ajuste cada faixa na tabela</label>
         <div id="tabela-faixas" class="tabela-faixas"></div>
+        <p id="aviso-faixas" class="aviso-faixas" hidden></p>
         <div class="linha">
           <button id="btn-faixa-add" class="sec">+ adicionar faixa</button>
           <button id="btn-faixa-auto" class="sec" title="Sugere faixas a partir dos seus dados">Sugerir faixas</button>
         </div>
-        <p class="dica mini">Ex.: até 1.900 · até 3.000 · acima de 3.000. Um território com 2.500 cai na 2ª faixa.</p>
+        <p class="dica mini">Também vale “até 20” ou “acima de 45”. Áreas cujo valor não cai em nenhuma faixa ficam cinza.</p>
       </div>
       <div class="grade2">
         <div class="campo so-num" id="campo-classes"><label for="classes">Nº de faixas</label>
@@ -153,8 +157,24 @@
   </aside>
 
   <div class="palco">
+    <div class="barra-vista">
+      <div class="seg" role="tablist" aria-label="Tipo de mapa">
+        <button data-modo="2d" class="ativo">Mapa 2D</button>
+        <button data-modo="3d">Mapa 3D (altura = valor)</button>
+      </div>
+      <div id="ctrl-3d" class="ctrl-3d" hidden>
+        <label>Altura <input type="range" id="exagero" min="0.3" max="3" step="0.1"></label>
+        <label title="O menor valor fica baixo e o maior bem alto"><input type="checkbox" id="realcar"> Realçar diferenças</label>
+        <button id="girar-esq" class="sec" title="Girar para a esquerda">⟲</button>
+        <button id="girar-dir" class="sec" title="Girar para a direita">⟳</button>
+        <button id="inclinar" class="sec" title="Alternar inclinação">Inclinar</button>
+        <button id="reset-3d" class="sec">Vista inicial</button>
+        <span class="dica mini">Arraste para mover · Ctrl + arraste (ou botão direito) para girar · roda do mouse para zoom</span>
+      </div>
+    </div>
     <div class="moldura" id="moldura">
       <svg id="mapa" viewBox="0 0 1200 860" role="img" aria-label="Mapa de Santos"></svg>
+      <div id="mapa3d" class="mapa3d" hidden></div>
       <div class="zoom">
         <button id="zoom-mais" title="Aproximar">+</button>
         <button id="zoom-menos" title="Afastar">−</button>
@@ -162,6 +182,13 @@
       </div>
       <div id="tooltip" class="tooltip" hidden></div>
     </div>
+    <section class="grafico-card" id="grafico-card" hidden>
+      <div class="grafico-topo">
+        <h3>Gráfico de barras <span class="dica mini">do maior para o menor valor</span></h3>
+        <button id="btn-grafico-png" class="sec">Baixar gráfico (PNG)</button>
+      </div>
+      <svg id="grafico" role="img" aria-label="Gráfico de barras dos valores"></svg>
+    </section>
     <details class="tabela-valores">
       <summary>Editar valores um a um <span id="contagem"></span></summary>
       <div id="editor-valores" class="editor-valores"></div>
@@ -215,6 +242,7 @@ CRAS São Bento           500                     310</pre>
       <li><b>Dados por bairro, mapa por CRAS:</b> cole por bairro e mude “Mostrar o mapa por” para CRAS. A ferramenta soma (ou faz a média) dos bairros de cada território.</li>
       <li><b>Dados por CRAS, mapa por bairro:</b> cada bairro recebe o valor do seu território.</li>
       <li><b>Escolher as faixas:</b> em “Faixas por”, escolha <b>Montar eu mesmo</b>: cada linha da tabelinha é uma faixa (“até 1.900”, “até 3.000”…), com o nome e a cor que você quiser. Use <b>+ adicionar faixa</b> para criar mais. Na legenda, clique em cada cor para trocá-la e reescreva o texto de cada faixa (ex.: “1” → “Alta vulnerabilidade”).</li>
+      <li><b>Mapa 3D:</b> clique em <b>Mapa 3D</b> acima do mapa. A altura de cada área mostra o valor. Arraste para mover, use Ctrl + arraste para girar e a roda do mouse para o zoom. Para ver a área continental em 3D, escolha “Município inteiro” ou “Só área continental” em Enquadramento.</li>
       <li><b>Categorias × números:</b> valores como 1, 2, 3 (até 10) ou textos (“alta”, “média”) viram categorias. Valores como 500 e 5.000 viram faixas. Dá para trocar em “Tipo de valor”.</li>
       <li>Números podem vir no formato brasileiro: <code>5.000</code>, <code>12,5</code>, <code>35%</code>.</li>
       <li>Não sabe o nome exato? Clique em <b>Baixar lista de nomes</b>, preencha no Excel e cole de volta.</li>
@@ -231,5 +259,6 @@ CRAS São Bento           500                     310</pre>
 <script src="lib/topojson-client.min.js"></script>
 <script src="data/santos-base.js"></script>
 <script src="app.js"></script>
+<!-- lib/deck.gl-9.1.14.min.js é carregada só quando o mapa 3D é aberto -->
 </body>
 </html>
