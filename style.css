@@ -159,3 +159,4 @@ body.modo3d .zoom { display: none; }
 .grafico-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .grafico-topo h3 { margin: 0; font-size: 14px; }
 #grafico { display: block; width: 100%; height: auto; margin-top: 6px; }
+.mapa3d-cont { left: 72.667%; top: 14.884%; width: 25%; height: 27.674%; }

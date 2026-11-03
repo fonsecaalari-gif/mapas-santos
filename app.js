@@ -11,6 +11,7 @@ const W = 1200, H = 860;
 const AREA = { x: 24, y: 100, w: 820, h: 715 };          // área principal do mapa
 const COL = { x: 868, y: 100, w: 308 };                   // coluna da direita (quadro + legendas)
 const INSET = { x: COL.x, y: COL.y, w: COL.w, h: 270 };
+const QUADRO3D = { x: INSET.x + 4, y: INSET.y + 28, w: INSET.w - 8, h: INSET.h - 32 };   // onde fica o 3D da área continental
 const CHAVE_ESTADO = 'mapas-santos:estado:v1';
 const CHAVE_TERR = 'mapas-santos:territorios:v1';
 
@@ -588,7 +589,12 @@ function desenhar() {
   if (E.escalaNorte && !modo3d) norte();
 
   // legendas (coluna direita)
-  let y = E.vista === 'composto' && !modo3d ? INSET.y + INSET.h + 26 : COL.y + 6;
+  if (modo3d && E.vista === 'composto') {
+    const q = INSET, gq = svg.append('g');
+    gq.append('rect').attr('x', q.x).attr('y', q.y).attr('width', q.w).attr('height', q.h).attr('fill', '#fbfbf9').attr('stroke', '#9aa3a8').attr('stroke-width', 1);
+    gq.append('text').attr('x', q.x + 10).attr('y', q.y + 20).attr('font-size', 12.5).attr('font-weight', 600).attr('fill', '#5b6870').text('Área continental (escala reduzida)');
+  }
+  let y = E.vista === 'composto' ? INSET.y + INSET.h + 26 : COL.y + 6;
   if (temDados) y = legendaValores(cls, coluna, y);
   if (modo3d && temDados) {
     const nota = quebrarNome(E.realcar ? 'Altura das colunas: do menor valor (mais baixa) ao maior (mais alta)' : 'Altura das colunas: proporcional ao valor', 40);
@@ -606,7 +612,7 @@ function desenhar() {
   if (!modo3d) { configurarZoom(partes, VISTA_ANTERIOR === E.vista); VISTA_ANTERIOR = E.vista; }
   else VISTA_ANTERIOR = null;
   document.body.classList.toggle('modo3d', modo3d);
-  if (modo3d) desenhar3D(cls, valores, nm); else $('#mapa3d').hidden = true;
+  if (modo3d) desenhar3D(cls, valores, nm); else { $('#mapa3d').hidden = true; $('#mapa3d-cont').hidden = true; }
   desenharGrafico(cls, valores, nm, coluna, tit);
   atualizarEditor();
   montarEditorLegenda(cls);
@@ -960,10 +966,14 @@ function exportarPNG() {
     const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0, c.width, c.height);
     URL.revokeObjectURL(url);
-    if (E.modo === '3d' && DECK) {
-      DECK.redraw('exportar');
-      const cv = $('#mapa3d canvas');
-      if (cv) ctx.drawImage(cv, AREA.x * escala, AREA.y * escala, AREA.w * escala, AREA.h * escala);
+    if (E.modo === '3d') {
+      const cenas = [['principal', '#mapa3d', AREA], ['quadro', '#mapa3d-cont', QUADRO3D]];
+      for (const [id, sel, r] of cenas) {
+        const D = DECKS[id], cv = $(sel + ' canvas');
+        if (!D || !cv || $(sel).hidden) continue;
+        D.redraw('exportar');
+        ctx.drawImage(cv, r.x * escala, r.y * escala, r.w * escala, r.h * escala);
+      }
     }
     c.toBlob(b => baixar(nomeArquivo('png'), b), 'image/png');
   };
@@ -1212,7 +1222,8 @@ $('#meta-fonte').textContent = 'Base: ' + BASE.meta.fonte + '.';
 
 
 // ------------------------------------------------------------------ mapa 3D (deck.gl, carregado só quando usado)
-let DECK = null, carregandoDeck = null, CHAVE_VISTA3D = '', VISTA3D_INICIAL = null;
+const DECKS = {}, CHAVES3D = {}, INICIAIS3D = {};   // 'principal' (ilha ou município) e 'quadro' (área continental)
+let carregandoDeck = null;
 function carregarDeck() {
   if (window.deck) return Promise.resolve();
   if (!carregandoDeck) carregandoDeck = new Promise((ok, erro) => {
@@ -1223,8 +1234,8 @@ function carregarDeck() {
   return carregandoDeck;
 }
 const rgb = c => { const x = d3.color(c) || d3.color('#cccccc'); return [x.r, x.g, x.b]; };
-function geometrias3D(nm) {
-  const filtro = E.vista === 'continente' ? g => CONTINENTAL(nomeGeom(g)) : E.vista === 'completo' ? () => true : g => !CONTINENTAL(nomeGeom(g));
+function geometrias3D(nm, parte) {
+  const filtro = parte === 'cont' ? g => CONTINENTAL(nomeGeom(g)) : parte === 'todos' ? () => true : g => !CONTINENTAL(nomeGeom(g));
   const gs = GEOMS.filter(filtro);
   return [...d3.group(gs, g => grupoDe(nomeGeom(g), nm))].map(([area, lista]) => ({ area, gs: lista,
     feat: nm === 'bairro' ? topojson.feature(TOPO, lista[0]) : { type: 'Feature', properties: {}, geometry: topojson.merge(TOPO, lista) } }));
@@ -1239,29 +1250,36 @@ function pontoRotuloGeo(f, nm) {
 }
 function desenhar3D(cls, valores, nm) {
   const box = $('#mapa3d'); box.hidden = false;
+  $('#mapa3d-cont').hidden = E.vista !== 'composto';
   carregarDeck().then(() => montar3D(cls, valores, nm))
     .catch(() => { box.innerHTML = '<p class="erro3d">Não consegui abrir o mapa 3D neste navegador. Tente atualizar a página ou usar o Chrome.</p>'; });
 }
 function montar3D(cls, valores, nm) {
-  const box = $('#mapa3d');
-  const formas = geometrias3D(nm);
   const temDados = valores.size > 0;
-  // altura: proporcional ao valor (texto/categorias usam a posição na legenda)
-  const num = o => parseNum(o.v);
+  // altura: proporcional ao valor (texto/categorias usam a posição na legenda); mesma escala na ilha e no quadro
   const todosNum = cls && cls.todosNum;
   const pos = new Map(cls && !todosNum ? cls.legenda.map((it, i) => [String(it.rotuloPadrao), i + 1]) : []);
-  const medida = o => todosNum ? num(o) : (pos.get(String(o.v)) || 1);
+  const medida = o => todosNum ? parseNum(o.v) : (pos.get(String(o.v)) || 1);
   const meds = [...valores.values()].map(o => medida(o)).filter(v => v != null);
   const maxV = d3.max(meds, v => Math.abs(v)) || 1, minV = d3.min(meds) ?? 0;
   const ALT = 2200 * (E.exagero || 1);
   // "realçar": o menor valor fica baixo e o maior bem alto (diferenças aparecem mais)
   const altura = m => E.realcar && maxV > minV ? (0.12 + 0.88 * (m - minV) / (maxV - minV)) * ALT : Math.abs(m) / maxV * ALT;
+  const ctx = { cls, valores, nm, temDados, medida, altura };
+  const parte = E.vista === 'continente' ? 'cont' : E.vista === 'completo' ? 'todos' : 'ilha';
+  montarCena('principal', $('#mapa3d'), parte, ctx, { pitch: 50, bearing: -15, latShift: 0.12, zoomAdj: 0.05, pad: 0.08, fundo: parte !== 'ilha', tam: 1, interativo: true });
+  if (E.vista === 'composto') montarCena('quadro', $('#mapa3d-cont'), 'cont', ctx, { pitch: 42, bearing: -10, latShift: 0.06, zoomAdj: 0.15, pad: 0.04, fundo: true, tam: 0.8, interativo: true });
+  else if (DECKS.quadro) { try { DECKS.quadro.finalize(); } catch (e) { /* */ } delete DECKS.quadro; $('#mapa3d-cont').innerHTML = ''; }
+}
+function montarCena(id, box, parte, ctx, op) {
+  const { cls, valores, nm, temDados, medida, altura } = ctx;
+  const formas = geometrias3D(nm, parte);
   const dados = formas.map(f => {
     const o = valores.get(f.area);
     const m = o ? medida(o) : null;
     const elev = o && m != null ? Math.max(40, altura(m)) : 0;
     const cor = o ? rgb(cls.corDe(o.v)) : (temDados ? [214, 217, 211] : [227, 229, 224]);
-    return { ...f.feat, properties: { area: f.area, elev, cor, texto: o ? cls.fmt(o.v) : '' } , _f: f };
+    return { ...f.feat, properties: { area: f.area, elev, cor, texto: o ? cls.fmt(o.v) : '' }, _f: f };
   });
   const contornos = [];
   for (const d of dados) {
@@ -1276,10 +1294,9 @@ function montar3D(cls, valores, nm) {
     if (E.mostrarValores && d.properties.texto) linhas.push(d.properties.texto);
     return { pos: [lon, lat, d.properties.elev + 60], texto: linhas.join('\n') };
   });
-  const tam = (nm === 'bairro' ? 11 : 13) * (E.tamRotulo || 100) / 100;
-  const continente = E.vista !== 'ilha' && E.vista !== 'composto';
+  const tam = (nm === 'bairro' ? 11 : 13) * (E.tamRotulo || 100) / 100 * op.tam;
   const camadas = [
-    continente && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
+    op.fundo && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
     new deck.GeoJsonLayer({
       id: 'areas', data: dados, extruded: true, wireframe: false, pickable: true, autoHighlight: true, highlightColor: [255, 255, 255, 70],
       getElevation: d => d.properties.elev, getFillColor: d => d.properties.cor,
@@ -1297,38 +1314,42 @@ function montar3D(cls, valores, nm) {
       parameters: { depthTest: false, depthCompare: 'always' },   // nomes sempre por cima das colunas
     }),
   ].filter(Boolean);
-  const chave = [E.vista, nm].join('|');
-  if (!DECK || chave !== CHAVE_VISTA3D || !box.querySelector('canvas')) {
-    const bounds = d3.geoBounds({ type: 'FeatureCollection', features: dados });
-    const w = box.clientWidth || 800, h = box.clientHeight || 700;
-    const vp = new deck.WebMercatorViewport({ width: w, height: h }).fitBounds(bounds, { padding: Math.round(Math.min(w, h) * 0.08) });
-    VISTA3D_INICIAL = { longitude: vp.longitude, latitude: vp.latitude - (bounds[1][1] - bounds[0][1]) * 0.12, zoom: vp.zoom + 0.05, pitch: 50, bearing: -15, maxPitch: 75 };
-    CHAVE_VISTA3D = chave;
-    if (DECK) DECK.setProps({ initialViewState: { ...VISTA3D_INICIAL } });
+  const chave = [E.vista, nm, parte].join('|');
+  let D = DECKS[id];
+  const precisaCriar = !D || !box.querySelector('canvas');
+  if (precisaCriar || chave !== CHAVES3D[id]) {
+    // enquadra pela área continental inteira (limite) no quadro; pelos bairros na ilha
+    const feats = parte === 'cont' ? LIMITE_CONT.features : dados;
+    const bounds = d3.geoBounds({ type: 'FeatureCollection', features: feats });
+    const w = box.clientWidth || 300, h = box.clientHeight || 240;
+    const vp = new deck.WebMercatorViewport({ width: w, height: h }).fitBounds(bounds, { padding: Math.round(Math.min(w, h) * op.pad) });
+    INICIAIS3D[id] = { longitude: vp.longitude, latitude: vp.latitude - (bounds[1][1] - bounds[0][1]) * op.latShift, zoom: vp.zoom + op.zoomAdj, pitch: op.pitch, bearing: op.bearing, maxPitch: 75 };
+    CHAVES3D[id] = chave;
+    if (D && !precisaCriar) D.setProps({ initialViewState: { ...INICIAIS3D[id] } });
   }
-  if (!DECK || !box.querySelector('canvas')) {
-    if (DECK) { try { DECK.finalize(); } catch (e) { /* */ } }
+  if (precisaCriar) {
+    if (D) { try { D.finalize(); } catch (e) { /* */ } }
     box.innerHTML = '';
-    DECK = new deck.Deck({
-      parent: box, initialViewState: { ...VISTA3D_INICIAL }, controller: { dragRotate: true, touchRotate: true },
+    DECKS[id] = new deck.Deck({
+      parent: box, initialViewState: { ...INICIAIS3D[id] }, controller: op.interativo ? { dragRotate: true, touchRotate: true } : false,
       layers: camadas, style: { position: 'absolute', inset: 0 },
       deviceProps: { webgl: { preserveDrawingBuffer: true } }, glOptions: { preserveDrawingBuffer: true },
       getTooltip: ({ object }) => object && object.properties && {
         html: `<b>${esc(object.properties.area)}</b><div>${object.properties.texto ? esc(object.properties.texto) : 'sem dado'}</div>`,
-        style: { background: 'rgba(31,42,48,.95)', color: '#fff', padding: '7px 10px', borderRadius: '6px', fontSize: '12.5px', fontFamily: FONTE_SVG },
+        style: { background: 'rgba(31,42,48,.95)', color: '#fff', padding: '7px 10px', borderRadius: '6px', fontSize: '12.5px', fontFamily: FONTE_SVG, zIndex: 20 },
       },
     });
-  } else DECK.setProps({ layers: camadas });
+  } else D.setProps({ layers: camadas });
 }
 function mexerVista3D(f) {
-  if (!DECK) return;
-  const atual = (DECK.viewManager && DECK.viewManager.getViewState && DECK.viewManager.getViewState()) || VISTA3D_INICIAL;
-  DECK.setProps({ initialViewState: { ...atual, ...f(atual), transitionDuration: 500 } });
+  const D = DECKS.principal; if (!D) return;
+  const atual = (D.viewManager && D.viewManager.getViewState && D.viewManager.getViewState()) || INICIAIS3D.principal;
+  D.setProps({ initialViewState: { ...atual, ...f(atual), transitionDuration: 500 } });
 }
 $('#girar-esq').addEventListener('click', () => mexerVista3D(v => ({ bearing: (v.bearing || 0) - 30 })));
 $('#girar-dir').addEventListener('click', () => mexerVista3D(v => ({ bearing: (v.bearing || 0) + 30 })));
 $('#inclinar').addEventListener('click', () => mexerVista3D(v => ({ pitch: (v.pitch || 0) > 30 ? 0 : 52 })));
-$('#reset-3d').addEventListener('click', () => DECK && VISTA3D_INICIAL && DECK.setProps({ initialViewState: { ...VISTA3D_INICIAL, transitionDuration: 600 } }));
+$('#reset-3d').addEventListener('click', () => { for (const id of Object.keys(DECKS)) if (INICIAIS3D[id]) DECKS[id].setProps({ initialViewState: { ...INICIAIS3D[id], transitionDuration: 600 } }); });
 $('#realcar').addEventListener('change', ev => { E.realcar = ev.target.checked; salvarEstado(); desenhar(); });
 $('#exagero').addEventListener('input', ev => { E.exagero = +ev.target.value; salvarEstado(); desenhar(); });
 document.querySelectorAll('.seg button').forEach(bt => bt.addEventListener('click', () => {
