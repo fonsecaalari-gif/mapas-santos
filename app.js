@@ -601,7 +601,7 @@ function desenhar() {
     nota.forEach((l, i) => svg.append('text').attr('x', COL.x).attr('y', y + 18 + i * 16).attr('font-size', 12.5).attr('fill', '#5b6870').text(l));
     y += 26 + (nota.length - 1) * 16;
   }
-  if (!modo3d) legendaEquip(y + 8);
+  legendaEquip(y + 8, modo3d);
 
   // rodapé
   const fonte = E.fonte ? 'Fonte dos dados: ' + E.fonte : '';
@@ -684,14 +684,15 @@ function legendaValores(cls, coluna, y) {
   }
   return y;
 }
-function legendaEquip(y) {
+function legendaEquip(y, bolinhas) {
   const sel = EQUIP.filter(e => E.equip.includes(e.tipo));
   if (!sel.length) return;
   const g = svg.append('g');
   g.append('text').attr('x', COL.x).attr('y', y + 12).attr('font-size', 13).attr('font-weight', 700).attr('fill', COR_TINTA).text('Equipamentos');
   y += 24;
   for (const e of sel) {
-    g.append('path').attr('transform', `translate(${COL.x + 13},${y + 8})`).attr('d', d3.symbol(SIMB[e.simb], e.tam)()).attr('fill', e.cor).attr('stroke', '#fff').attr('stroke-width', 1);
+    if (bolinhas) g.append('circle').attr('cx', COL.x + 13).attr('cy', y + 8).attr('r', Math.max(3.5, Math.sqrt(e.tam) * 0.62)).attr('fill', e.cor).attr('stroke', '#fff').attr('stroke-width', 1.2);
+    else g.append('path').attr('transform', `translate(${COL.x + 13},${y + 8})`).attr('d', d3.symbol(SIMB[e.simb], e.tam)()).attr('fill', e.cor).attr('stroke', '#fff').attr('stroke-width', 1);
     g.append('text').attr('x', COL.x + 36).attr('y', y + 12.5).attr('font-size', 12.5).attr('fill', COR_TINTA).text(e.tipo);
     y += 20;
   }
@@ -1295,6 +1296,12 @@ function montarCena(id, box, parte, ctx, op) {
     return { pos: [lon, lat, d.properties.elev + 60], texto: linhas.join('\n') };
   });
   const tam = (nm === 'bairro' ? 11 : 13) * (E.tamRotulo || 100) / 100 * op.tam;
+  // equipamentos: bolinhas por cima da coluna da área onde ficam
+  const elevArea = new Map(dados.map(d => [d.properties.area, d.properties.elev]));
+  const tiposEq = new Set(E.equip);
+  const naParte = e => parte === 'todos' ? true : parte === 'cont' ? CONTINENTAL(e.bairro) : !CONTINENTAL(e.bairro);
+  const pontosEq = BASE.equipamentos.filter(e => tiposEq.has(e.tipo) && naParte(e) && equipPorTipo[e.tipo])
+    .map(e => ({ ...e, z: (elevArea.get(grupoDe(e.bairro, nm)) || 0) + 12, cor: rgb(equipPorTipo[e.tipo].cor), raio: Math.max(3.5, Math.sqrt(equipPorTipo[e.tipo].tam) * 0.62) * op.tam }));
   const camadas = [
     op.fundo && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
     new deck.GeoJsonLayer({
@@ -1306,6 +1313,11 @@ function montarCena(id, box, parte, ctx, op) {
     }),
     // contorno branco no topo de cada coluna (separa áreas vizinhas)
     new deck.PathLayer({ id: 'contornos', data: contornos, getPath: d => d.path, getColor: [255, 255, 255, 230], getWidth: 1.4, widthUnits: 'pixels', updateTriggers: { getPath: [Math.random()] } }),
+    pontosEq.length && new deck.ScatterplotLayer({
+      id: 'equipamentos', data: pontosEq, getPosition: e => [e.lon, e.lat, e.z], getRadius: e => e.raio * 1.35, radiusUnits: 'pixels', billboard: true,
+      getFillColor: e => e.cor, stroked: true, getLineColor: [255, 255, 255], lineWidthUnits: 'pixels', getLineWidth: 1.5, pickable: true,
+      parameters: { depthTest: false, depthCompare: 'always' }, updateTriggers: { getPosition: [Math.random()] },
+    }),
     textos.length && new deck.TextLayer({
       id: 'nomes', data: textos, getPosition: d => d.pos, getText: d => d.texto, getSize: tam, sizeUnits: 'pixels',
       getColor: [31, 42, 48], fontFamily: FONTE_SVG, fontWeight: 700, characterSet: 'auto', lineHeight: 1.15,
@@ -1334,7 +1346,10 @@ function montarCena(id, box, parte, ctx, op) {
       parent: box, initialViewState: { ...INICIAIS3D[id] }, controller: op.interativo ? { dragRotate: true, touchRotate: true } : false,
       layers: camadas, style: { position: 'absolute', inset: 0 },
       deviceProps: { webgl: { preserveDrawingBuffer: true } }, glOptions: { preserveDrawingBuffer: true },
-      getTooltip: ({ object }) => object && object.properties && {
+      getTooltip: ({ object }) => object && object.tipo && object.nome ? {
+        html: `<b>${esc(object.nome)}</b><div>${esc(object.tipo)} · ${esc(object.bairro)}</div><div>${esc(object.endereco || '')}</div>`,
+        style: { background: 'rgba(31,42,48,.95)', color: '#fff', padding: '7px 10px', borderRadius: '6px', fontSize: '12.5px', fontFamily: FONTE_SVG, zIndex: 20 },
+      } : object && object.properties && {
         html: `<b>${esc(object.properties.area)}</b><div>${object.properties.texto ? esc(object.properties.texto) : 'sem dado'}</div>`,
         style: { background: 'rgba(31,42,48,.95)', color: '#fff', padding: '7px 10px', borderRadius: '6px', fontSize: '12.5px', fontFamily: FONTE_SVG, zIndex: 20 },
       },
