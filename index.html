@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mapas de Santos</title>
 <meta name="description" content="Gere mapas de Santos (ilha e área continental) com qualquer indicador por bairro, zona, região ou território de CRAS, CREAS e saúde.">
-<link rel="stylesheet" href="style.css?v=20261104b">
+<link rel="stylesheet" href="style.css?v=20261104c">
 </head>
 <body>
 <header class="topo">
@@ -166,7 +166,7 @@
       <div id="ctrl-3d" class="ctrl-3d" hidden>
         <label>Altura <input type="range" id="exagero" min="0.3" max="3" step="0.1"></label>
         <label title="O menor valor fica baixo e o maior bem alto"><input type="checkbox" id="realcar"> Realçar diferenças</label>
-        <label title="Ruas e bairros ao fundo (OpenStreetMap / CARTO)"><input type="checkbox" id="fundo3d"> Ruas ao fundo</label>
+        <label title="Ruas ao fundo (Esri / OpenStreetMap)"><input type="checkbox" id="fundo3d"> Ruas ao fundo</label>
         <button id="tela-cheia" class="sec" title="Abrir o 3D em tela cheia">⛶ Tela cheia</button>
         <button id="reset-3d" class="sec">Vista inicial</button>
         <span class="dica mini">Como no Google Maps: <b>arraste</b> para mover · <b>roda / pinça</b> para zoom · <b>Shift + arraste</b> (ou botão direito) para girar e inclinar</span>
@@ -256,10 +256,10 @@ CRAS São Bento           500                     310</pre>
 </section>
 </main>
 
-<script src="lib/d3.min.js?v=20261104b"></script>
-<script src="lib/topojson-client.min.js?v=20261104b"></script>
-<script src="data/santos-base.js?v=20261104b"></script>
-<script src="app.js?v=20261104b"></script>
+<script src="lib/d3.min.js?v=20261104c"></script>
+<script src="lib/topojson-client.min.js?v=20261104c"></script>
+<script src="data/santos-base.js?v=20261104c"></script>
+<script src="app.js?v=20261104c"></script>
 <!-- lib/deck.gl-9.1.14.min.js é carregada só quando o mapa 3D é aberto -->
 </body>
 </html>

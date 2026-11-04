@@ -607,7 +607,7 @@ function desenhar() {
   const fonte = E.fonte ? 'Fonte dos dados: ' + E.fonte : '';
   svg.append('text').attr('x', 36).attr('y', H - 22).attr('font-size', 12).attr('fill', '#4b585f').text(fonte);
   svg.append('text').attr('x', W - 24).attr('y', H - 22).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', '#8a959b')
-    .text('Base cartográfica: Prefeitura de Santos (GeoServer)' + (E.modo === '3d' && E.fundo3d ? ' · fundo: © OpenStreetMap, © CARTO' : '') + ' · territórios CRAS/CREAS/saúde: aproximação editável');
+    .text('Base cartográfica: Prefeitura de Santos (GeoServer)' + (E.modo === '3d' && E.fundo3d ? ' · fundo: Esri, HERE, Garmin, © OpenStreetMap' : '') + ' · territórios CRAS/CREAS/saúde: aproximação editável');
 
   if (!modo3d) { configurarZoom(partes, VISTA_ANTERIOR === E.vista); VISTA_ANTERIOR = E.vista; }
   else VISTA_ANTERIOR = null;
@@ -1305,15 +1305,16 @@ function montarCena(id, box, parte, ctx, op) {
   const pontosEq = BASE.equipamentos.filter(e => tiposEq.has(e.tipo) && naParte(e) && equipPorTipo[e.tipo])
     .map(e => ({ ...e, z: (elevArea.get(grupoDe(e.bairro, nm)) || 0) + 12, cor: rgb(equipPorTipo[e.tipo].cor), raio: Math.max(3.5, Math.sqrt(equipPorTipo[e.tipo].tam) * 0.62) * op.tam }));
   const camadas = [
-    E.fundo3d && new deck.TileLayer({
-      id: 'ruas', data: ['a', 'b', 'c', 'd'].map(l => `https://${l}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png`),
-      minZoom: 0, maxZoom: 19, tileSize: 256, maxRequests: 12,
+    ...(E.fundo3d ? ['World_Light_Gray_Base', 'World_Light_Gray_Reference'].map(camada => new deck.TileLayer({
+      // mapa de ruas em cinza claro (Esri Light Gray Canvas): o fundo não compete com as cores dos dados
+      id: 'ruas-' + camada, data: `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${camada}/MapServer/tile/{z}/{y}/{x}`,
+      minZoom: 0, maxZoom: 16, tileSize: 256, maxRequests: 12,
       onTileError: () => {},   // sem internet para o fundo: o mapa continua funcionando
       renderSubLayers: props => {
         const [[w, s], [e, n]] = props.tile.boundingBox;
-        return new deck.BitmapLayer(props, { data: null, image: props.data, bounds: [w, s, e, n], opacity: 0.95 });
+        return new deck.BitmapLayer(props, { data: null, image: props.data, bounds: [w, s, e, n] });
       },
-    }),
+    })) : []),
     op.fundo && !E.fundo3d && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
     new deck.GeoJsonLayer({
       id: 'areas', data: dados, extruded: true, wireframe: false, pickable: true, autoHighlight: true, highlightColor: [255, 255, 255, 70],
@@ -1396,7 +1397,7 @@ function montarNav3D(id, box) {
   });
   box.appendChild(nav);
   const at = document.createElement('div'); at.className = 'atrib3d';
-  at.innerHTML = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+  at.innerHTML = 'Fundo: Esri, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
   box.appendChild(at);
   if (id === 'principal') { const lg = document.createElement('div'); lg.className = 'leg3d'; box.appendChild(lg); }
   atualizarBussola(id);
