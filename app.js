@@ -184,7 +184,7 @@ const PADRAO = {
   rotulos: 'dados', vista: 'composto', mostrarValores: false, divisas: true, equip: ['CRAS'],
   cortesManuais: '', corIni: '#fff3c4', corFim: '#99000d', legEdit: {}, legTitulo: '', legContagem: true,
   legSemDado: true, semDadoTexto: '', corSemDado: 'hachura', unidade: '', casas: 'auto', subtitulo: '',
-  tamRotulo: 100, escalaNorte: true, faixas: [], modo: '2d', exagero: 1, realcar: true,
+  tamRotulo: 100, escalaNorte: true, faixas: [], modo: '2d', exagero: 1, realcar: true, fundo3d: true,
 };
 let E = Object.assign({}, PADRAO, lsGet(CHAVE_ESTADO) || {});
 if (!E.legEdit || typeof E.legEdit !== 'object') E.legEdit = {};
@@ -607,7 +607,7 @@ function desenhar() {
   const fonte = E.fonte ? 'Fonte dos dados: ' + E.fonte : '';
   svg.append('text').attr('x', 36).attr('y', H - 22).attr('font-size', 12).attr('fill', '#4b585f').text(fonte);
   svg.append('text').attr('x', W - 24).attr('y', H - 22).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', '#8a959b')
-    .text('Base cartográfica: Prefeitura de Santos (GeoServer) · territórios CRAS/CREAS/saúde: aproximação editável');
+    .text('Base cartográfica: Prefeitura de Santos (GeoServer)' + (E.modo === '3d' && E.fundo3d ? ' · fundo: © OpenStreetMap, © CARTO' : '') + ' · territórios CRAS/CREAS/saúde: aproximação editável');
 
   if (!modo3d) { configurarZoom(partes, VISTA_ANTERIOR === E.vista); VISTA_ANTERIOR = E.vista; }
   else VISTA_ANTERIOR = null;
@@ -618,6 +618,8 @@ function desenhar() {
   montarEditorLegenda(cls);
   montarTabelaFaixas(cls);
   $('#contagem').textContent = `(${DADOS.linhas.size} de ${areasDo(E.nivelDados).length} preenchidos)`;
+  const ehNum = (cls && cls.tipo === 'num') || E.tipo === 'num' || E.metodo === 'manual';
+  document.querySelectorAll('.so-num').forEach(el => { el.style.opacity = ehNum ? 1 : 0.45; });
 }
 
 // ponto do rótulo: para bairros, o "polo de inacessibilidade" calculado na preparação dos dados
@@ -1223,7 +1225,7 @@ $('#meta-fonte').textContent = 'Base: ' + BASE.meta.fonte + '.';
 
 
 // ------------------------------------------------------------------ mapa 3D (deck.gl, carregado só quando usado)
-const DECKS = {}, CHAVES3D = {}, INICIAIS3D = {};   // 'principal' (ilha ou município) e 'quadro' (área continental)
+const DECKS = {}, CHAVES3D = {}, INICIAIS3D = {}, VISTA3D = {};   // 'principal' (ilha ou município) e 'quadro' (área continental)
 let carregandoDeck = null;
 function carregarDeck() {
   if (window.deck) return Promise.resolve();
@@ -1303,7 +1305,16 @@ function montarCena(id, box, parte, ctx, op) {
   const pontosEq = BASE.equipamentos.filter(e => tiposEq.has(e.tipo) && naParte(e) && equipPorTipo[e.tipo])
     .map(e => ({ ...e, z: (elevArea.get(grupoDe(e.bairro, nm)) || 0) + 12, cor: rgb(equipPorTipo[e.tipo].cor), raio: Math.max(3.5, Math.sqrt(equipPorTipo[e.tipo].tam) * 0.62) * op.tam }));
   const camadas = [
-    op.fundo && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
+    E.fundo3d && new deck.TileLayer({
+      id: 'ruas', data: ['a', 'b', 'c', 'd'].map(l => `https://${l}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png`),
+      minZoom: 0, maxZoom: 19, tileSize: 256, maxRequests: 12,
+      onTileError: () => {},   // sem internet para o fundo: o mapa continua funcionando
+      renderSubLayers: props => {
+        const [[w, s], [e, n]] = props.tile.boundingBox;
+        return new deck.BitmapLayer(props, { data: null, image: props.data, bounds: [w, s, e, n], opacity: 0.95 });
+      },
+    }),
+    op.fundo && !E.fundo3d && new deck.GeoJsonLayer({ id: 'continente', data: LIMITE_CONT, filled: true, stroked: true, getFillColor: [241, 241, 236], getLineColor: [163, 171, 175], lineWidthMinPixels: 1 }),
     new deck.GeoJsonLayer({
       id: 'areas', data: dados, extruded: true, wireframe: false, pickable: true, autoHighlight: true, highlightColor: [255, 255, 255, 70],
       getElevation: d => d.properties.elev, getFillColor: d => d.properties.cor,
@@ -1343,7 +1354,9 @@ function montarCena(id, box, parte, ctx, op) {
     if (D) { try { D.finalize(); } catch (e) { /* */ } }
     box.innerHTML = '';
     DECKS[id] = new deck.Deck({
-      parent: box, initialViewState: { ...INICIAIS3D[id] }, controller: op.interativo ? { dragRotate: true, touchRotate: true } : false,
+      parent: box, initialViewState: { ...INICIAIS3D[id] },
+      controller: op.interativo ? { dragRotate: true, touchRotate: true, touchZoom: true, scrollZoom: { speed: 0.02, smooth: true }, doubleClickZoom: true, keyboard: true, inertia: 300 } : false,
+      onViewStateChange: ({ viewState }) => { VISTA3D[id] = viewState; atualizarBussola(id); },
       layers: camadas, style: { position: 'absolute', inset: 0 },
       deviceProps: { webgl: { preserveDrawingBuffer: true } }, glOptions: { preserveDrawingBuffer: true },
       getTooltip: ({ object }) => object && object.tipo && object.nome ? {
@@ -1355,16 +1368,69 @@ function montarCena(id, box, parte, ctx, op) {
       },
     });
   } else D.setProps({ layers: camadas });
+  if (precisaCriar) { VISTA3D[id] = { ...INICIAIS3D[id] }; montarNav3D(id, box); }
+  else if (chave !== CHAVES3D[id + ':nav']) VISTA3D[id] = { ...INICIAIS3D[id] };
+  CHAVES3D[id + ':nav'] = chave;
+  const at = box.querySelector('.atrib3d'); if (at) at.hidden = !E.fundo3d;
+  if (id === 'principal') legenda3D(box, cls, ctx.valores);
 }
-function mexerVista3D(f) {
-  const D = DECKS.principal; if (!D) return;
-  const atual = (D.viewManager && D.viewManager.getViewState && D.viewManager.getViewState()) || INICIAIS3D.principal;
-  D.setProps({ initialViewState: { ...atual, ...f(atual), transitionDuration: 500 } });
+// botões de navegação por cima do mapa (como no Google Maps)
+function montarNav3D(id, box) {
+  const nav = document.createElement('div'); nav.className = 'nav3d';
+  const pequeno = id !== 'principal';
+  nav.innerHTML = `<div class="grupo3d">
+      <button data-nav="zoom+" title="Aproximar">+</button><button data-nav="zoom-" title="Afastar">−</button></div>
+    <div class="grupo3d">
+      <button data-nav="norte" class="bussola" title="Apontar para o norte e ver de cima"><svg width="20" height="20" viewBox="-10 -10 20 20"><path d="M0,-8 L4,0 L-4,0Z" fill="#d93025"/><path d="M0,8 L4,0 L-4,0Z" fill="#9aa0a6"/></svg></button>
+      ${pequeno ? '' : '<button data-nav="girar-esq" title="Girar para a esquerda">⟲</button><button data-nav="girar-dir" title="Girar para a direita">⟳</button>'}
+      <button data-nav="inclinar" title="Inclinar mais / ver de cima">⛰</button></div>
+    ${pequeno ? '' : '<div class="grupo3d"><button data-nav="tela" title="Tela cheia">⛶</button></div>'}`;
+  nav.addEventListener('click', ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    const acao = b.dataset.nav;
+    if (acao === 'tela') return alternarTelaCheia();
+    mexerVista3D(id, v => acao === 'zoom+' ? { zoom: v.zoom + 0.7 } : acao === 'zoom-' ? { zoom: v.zoom - 0.7 }
+      : acao === 'girar-esq' ? { bearing: v.bearing - 30 } : acao === 'girar-dir' ? { bearing: v.bearing + 30 }
+      : acao === 'norte' ? { bearing: 0, pitch: (v.bearing || 0) === 0 && (v.pitch || 0) > 0 ? 0 : v.pitch }
+      : acao === 'inclinar' ? { pitch: (v.pitch || 0) >= 60 ? 0 : (v.pitch || 0) >= 30 ? 70 : 50 } : {});
+  });
+  box.appendChild(nav);
+  const at = document.createElement('div'); at.className = 'atrib3d';
+  at.innerHTML = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+  box.appendChild(at);
+  if (id === 'principal') { const lg = document.createElement('div'); lg.className = 'leg3d'; box.appendChild(lg); }
+  atualizarBussola(id);
 }
-$('#girar-esq').addEventListener('click', () => mexerVista3D(v => ({ bearing: (v.bearing || 0) - 30 })));
-$('#girar-dir').addEventListener('click', () => mexerVista3D(v => ({ bearing: (v.bearing || 0) + 30 })));
-$('#inclinar').addEventListener('click', () => mexerVista3D(v => ({ pitch: (v.pitch || 0) > 30 ? 0 : 52 })));
-$('#reset-3d').addEventListener('click', () => { for (const id of Object.keys(DECKS)) if (INICIAIS3D[id]) DECKS[id].setProps({ initialViewState: { ...INICIAIS3D[id], transitionDuration: 600 } }); });
+function atualizarBussola(id) {
+  const D = DECKS[id]; const box = id === 'principal' ? $('#mapa3d') : $('#mapa3d-cont');
+  const svgB = box && box.querySelector('.bussola svg'); const v = VISTA3D[id];
+  if (svgB && v) svgB.style.transform = `rotate(${-(v.bearing || 0)}deg)`;
+}
+// legenda dentro do 3D (aparece em tela cheia)
+function legenda3D(box, cls, valores) {
+  const lg = box.querySelector('.leg3d'); if (!lg) return;
+  const tit = $('#mapa text') ? $('#mapa text').textContent : '';
+  lg.innerHTML = `<b>${esc(tit)}</b>` + (cls ? cls.legenda.map(it => `<div class="it"><span class="sw" style="background:${esc(String(it.cor).startsWith('url') ? '#eee' : it.cor)}"></span>${esc(it.rotulo)}</div>`).join('') : '');
+}
+function alternarTelaCheia() {
+  const el = $('#mapa3d');
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+function mexerVista3D(id, f) {
+  if (typeof id === 'function') { f = id; id = 'principal'; }
+  const D = DECKS[id]; if (!D) return;
+  const atual = VISTA3D[id] || INICIAIS3D[id];
+  const nova = { ...atual, ...f({ bearing: 0, pitch: 0, ...atual }), transitionDuration: 450, transitionInterpolator: new deck.LinearInterpolator(['longitude', 'latitude', 'zoom', 'bearing', 'pitch']) };
+  nova.pitch = Math.max(0, Math.min(75, nova.pitch));
+  VISTA3D[id] = nova;
+  D.setProps({ initialViewState: nova });
+  atualizarBussola(id);
+}
+$('#tela-cheia').addEventListener('click', alternarTelaCheia);
+$('#fundo3d').addEventListener('change', ev => { E.fundo3d = ev.target.checked; salvarEstado(); desenhar(); });
+$('#reset-3d').addEventListener('click', () => { for (const id of Object.keys(DECKS)) if (INICIAIS3D[id]) { VISTA3D[id] = { ...INICIAIS3D[id] }; DECKS[id].setProps({ initialViewState: { ...INICIAIS3D[id], transitionDuration: 600, transitionInterpolator: new deck.LinearInterpolator(['longitude', 'latitude', 'zoom', 'bearing', 'pitch']) } }); atualizarBussola(id); } });
 $('#realcar').addEventListener('change', ev => { E.realcar = ev.target.checked; salvarEstado(); desenhar(); });
 $('#exagero').addEventListener('input', ev => { E.exagero = +ev.target.value; salvarEstado(); desenhar(); });
 document.querySelectorAll('.seg button').forEach(bt => bt.addEventListener('click', () => {
@@ -1375,6 +1441,7 @@ function atualizarModo() {
   $('#ctrl-3d').hidden = E.modo !== '3d';
   $('#exagero').value = E.exagero || 1;
   $('#realcar').checked = !!E.realcar;
+  $('#fundo3d').checked = !!E.fundo3d;
 }
 
 // ------------------------------------------------------------------ gráfico de barras (ranking)
